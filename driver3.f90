@@ -65,7 +65,7 @@
 !     We specify the dimension n of the sample problem and the number
 !        m of limited memory corrections stored. 
 
-      integer,  parameter    :: n = 10, m = 10, iprint = -1
+      integer,  parameter    :: n = 1000, m = 10, iprint = -1
       integer,  parameter    :: dp = kind(1.0d0)
       real(dp), parameter    :: factr  = 0.0d0, pgtol  = 0.0d0, &
                                 tlimit = 10.0d0
@@ -101,7 +101,7 @@
 
       do 10 i=1, n,2
          nbd(i)=2
-         l(i)=-1.0d0
+         l(i)=1.0d0
          u(i)=1.0d2
   10  continue
 
@@ -187,26 +187,36 @@
 
               f=.25d0*(x(1)-1.d0)**2
               do 20 i=2, n
-                 f=f+abs(x(i)-x(i-1)**2)
+                 f=f+abs((x(i)-x(i-1)**2))
   20          continue
               f=4.d0*f
 
 !          Compute gradient g for the sample problem.
-
-               t1 = x(2) - x(1)**2
-               g(1) = 2.d0 * (x(1) - 1.d0) - 1.6d1 * x(1) * t1
-               do 22 i=2, n-1
-                  t2=t1
-                  t1=x(i+1)-x(i)**2
-                  if t1 .ge. 0
-                      g(i)=1.d0 - 2d0 * x(i - 1)
-                  else
-                      g(i)=8.d0 * t2 - 1.6d1 * x(i) * t1
-                  endif
-                  
-  22           continue
-               g(n)=8.d0*t1
-            endif
+           if(x(2) > x(1)**2) then
+              g(1) = 2.d0*(x(1)-1.d0)-8d0*x(1)
+           else
+              g(1) = 2.d0*(x(1)-1.d0)+8d0*x(1)
+           endif
+           do 22 i=2,n-1
+              if(x(i+1)>x(i)**2) then
+                 if(x(i)>x(i-1)**2) then
+                    g(i)=4d0*(1d0 - 2d0*x(i))
+                 else
+                    g(i)=4d0*(-1d0 - 2d0*x(i))
+                 endif
+              else
+                 if(x(i)>x(i-1)**2) then
+                    g(i)=4d0*(1d0 + 2d0*x(i))
+                 else
+                    g(i)=4d0*(-1d0 + 2d0*x(i))
+                 endif
+              endif
+  22       continue
+              g(n)=4.d0
+           if(x(n)<x(n-1)**2) then
+              g(n)=-4d0
+           endif
+        endif
 
 !          go back to the minimization routine.
          else

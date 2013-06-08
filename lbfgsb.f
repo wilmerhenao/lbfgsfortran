@@ -3583,11 +3583,12 @@ c     Test for warnings.
      +   task = 'WARNING: STP = STPMAX'
       if (stp .eq. stpmin .and. (f .gt. ftest .or. g .ge. gtest)) 
      +   task = 'WARNING: STP = STPMIN'
-
+c     Michael Overton:
 c     Test for convergence.
 c     Change abs(g) to -g 
 c     Note that -ginit is always positive
-      if (f .le. ftest .and. abs(g) .le. gtol*(-ginit)) 
+c     if (f .le. ftest .and. abs(g) .le. gtol*(-ginit)) 
+      if (f .le. ftest .and. -g .le. gtol*(-ginit)) 
      +   task = 'CONVERGENCE'
 
 c     Test for termination.
