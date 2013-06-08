@@ -188,9 +188,9 @@ program driver
                     f=.25d0*(x(1)-1.d0)**2
                     do 20 i=2, n
                        f=f+abs((x(i)-x(i-1)**2))
-20                     continue
+20                  continue
                        f=4.d0*f
-
+                       
                        !          Compute gradient g for the sample problem.
                        if(x(2) > x(1)**2) then
                           g(1) = 2.d0*(x(1)-1.d0)-8d0*x(1)
@@ -211,13 +211,13 @@ program driver
                                 g(i)=4d0*(-1d0 + 2d0*x(i))
                              endif
                           endif
-22                        continue
+22                     continue
                           g(n)=4.d0
                           if(x(n)<x(n-1)**2) then
                              g(n)=-4d0
                           endif
 
-                       endif
+                    endif
 
                        !          go back to the minimization routine.
                     else
@@ -268,5 +268,5 @@ program driver
 
                end program driver
 
-               !======================= The end of driver3 ============================
+   !======================= The end of driver3 ============================
 

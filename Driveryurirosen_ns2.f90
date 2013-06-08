@@ -73,7 +73,7 @@ program driver
   character(len=60)      :: task, csave
   logical                :: lsave(4)
   integer                :: isave(44)
-  real(dp)               :: f
+  real(dp)               :: f, r
   real(dp)               :: dsave(29)
   integer,  allocatable  :: nbd(:), iwa(:)
   real(dp), allocatable  :: x(:), l(:), u(:), g(:), wa(:)
@@ -101,7 +101,7 @@ program driver
 
   do 10 i=1, n,2
      nbd(i)=2
-     l(i)=1.0d0
+     l(i)=-1.0d2
      u(i)=1.0d2
 10   continue
 
@@ -185,40 +185,15 @@ program driver
                     !          The time limit has not been reached and we compute
                     !          the function value f for the sample problem.
 
-                    f=.25d0*(x(1)-1.d0)**2
-                    do 20 i=2, n
-                       f=f+abs((x(i)-x(i-1)**2))
-20                     continue
-                       f=4.d0*f
-
-                       !          Compute gradient g for the sample problem.
-                       if(x(2) > x(1)**2) then
-                          g(1) = 2.d0*(x(1)-1.d0)-8d0*x(1)
-                       else
-                          g(1) = 2.d0*(x(1)-1.d0)+8d0*x(1)
-                       endif
-                       do 22 i=2,n-1
-                          if(x(i+1)>x(i)**2) then
-                             if(x(i)>x(i-1)**2) then
-                                g(i)=4d0*(1d0 - 2d0*x(i))
-                             else
-                                g(i)=4d0*(-1d0 - 2d0*x(i))
-                             endif
-                          else
-                             if(x(i)>x(i-1)**2) then
-                                g(i)=4d0*(1d0 + 2d0*x(i))
-                             else
-                                g(i)=4d0*(-1d0 + 2d0*x(i))
-                             endif
-                          endif
-22                        continue
-                          g(n)=4.d0
-                          if(x(n)<x(n-1)**2) then
-                             g(n)=-4d0
-                          endif
-
-                       endif
-
+                    f=abs(1d0-x(1))/4
+                    g(1)=sign(1d0,x(1)-1)/4
+                    do 20 i=1, (n-1)
+                       f=f+abs(1d0+x(i+1)-2d0*abs(x(i)))
+                       r=sign(1d0,1+x(i+1)-2d0*abs(x(i)))
+                       g(i+1)=g(i+1)+r
+                       g(i)=g(i)-2d0*sign(1d0,x(i))*r
+20                  continue
+                    endif
                        !          go back to the minimization routine.
                     else
 
