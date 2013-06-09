@@ -73,7 +73,7 @@ program driver
   character(len=60)      :: task, csave
   logical                :: lsave(4)
   integer                :: isave(44)
-  real(dp)               :: f
+  real(dp)               :: f           
   real(dp)               :: dsave(29)
   integer,  allocatable  :: nbd(:), iwa(:)
   real(dp), allocatable  :: x(:), l(:), u(:), g(:), wa(:)
@@ -216,7 +216,7 @@ program driver
                           if(x(n)<x(n-1)**2) then
                              g(n)=-4d0
                           endif
-
+                          
                     endif
 
                        !          go back to the minimization routine.
@@ -263,7 +263,7 @@ program driver
                        endif
                     end if 
                  end do
-
+                 
                  !     If task is neither FG nor NEW_X we terminate execution.
 
                end program driver

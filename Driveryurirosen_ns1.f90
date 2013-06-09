@@ -62,8 +62,8 @@ program driver
   !       provide our own termination conditions
   !     We specify the dimension n of the sample problem and the number
   !        m of limited memory corrections stored. 
-
-  integer,  parameter    :: n = 1000, m = 10, iprint = -1
+  
+  integer,  parameter    :: n = 10, m = 7, iprint = -1
   integer,  parameter    :: dp = kind(1.0d0)
   real(dp), parameter    :: factr  = 0.0d0, pgtol  = 0.0d0, &
        tlimit = 10.0d0
@@ -78,11 +78,11 @@ program driver
   !
   real(dp)               :: t1, t2, time1, time2
   integer                :: i, j
-
+  
   allocate ( nbd(n), x(n), l(n), u(n), g(n) )
   allocate ( iwa(3*n) )
   allocate ( wa(2*m*n + 5*n + 11*m*m + 8*m) )
-
+  
   !     This time-controlled driver shows that it is possible to terminate
   !     a run by elapsed CPU time, and yet be able to print all desired
   !     information. This driver also illustrates the use of two
@@ -90,19 +90,19 @@ program driver
   !     on execution time. The sample problem used here is the same as in 
   !     driver1 and driver2 (the extended Rosenbrock function with bounds 
   !     on the variables).
-
+  
   !     We now specify nbd which defines the bounds on the variables:
   !                    l   specifies the lower bounds,
   !                    u   specifies the upper bounds. 
-
+  
   !     First set bounds on the odd-numbered variables.
-
+  
   do 10 i=1, n,2
      nbd(i)=2
      l(i)=-1.0d2
      u(i)=1.0d2
 10 continue
-
+     
      !     Next set bounds on the even-numbered variables.
 
      do 12 i=2, n,2
@@ -194,7 +194,7 @@ program driver
            endif
                  
                  !          go back to the minimization routine.
-           else
+        else
                  
            if (task(1:5) .eq. 'NEW_X') then        
               
