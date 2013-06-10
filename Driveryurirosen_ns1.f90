@@ -63,7 +63,7 @@ program driver
   !     We specify the dimension n of the sample problem and the number
   !        m of limited memory corrections stored. 
   
-  integer,  parameter    :: n = 10, m = 7, iprint = -1
+  integer,  parameter    :: n = 3, m = 5, iprint = -1
   integer,  parameter    :: dp = kind(1.0d0)
   real(dp), parameter    :: factr  = 0.0d0, pgtol  = 0.0d0, &
        tlimit = 10.0d0
@@ -196,7 +196,7 @@ program driver
                  !          go back to the minimization routine.
         else
                  
-           if (task(1:5) .eq. 'NEW_X') then        
+           if (task(1:5) .eq. 'NEW_X') then
               
               !        the minimization routine has returned with a new iterate.
               !        The time limit has not been reached, and we test whether

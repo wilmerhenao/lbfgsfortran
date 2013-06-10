@@ -502,7 +502,7 @@ c     ************
 
 c        Initialize counters and scalars when task='START'.
 
-c           for the limited memory BFGS matrices:
+c        for the limited memory BFGS matrices:
          col    = 0
          head   = 1
          theta  = one
@@ -545,7 +545,7 @@ c           'word' records the status of subspace solutions.
 
 c           'info' records the termination information.
          info = 0
-
+         
          itfile = 8
          if (iprint .ge. 1) then
 c                                open a summary file 'iterate.dat'
@@ -680,7 +680,7 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
      +            wa(1),wa(2*m+1),wa(4*m+1),wa(6*m+1),nseg,
      +            iprint, sbgnrm, info, epsmch)
       if (info .ne. 0) then 
-c         singular triangular system detected; refresh the lbfgs memory.
+c     singular triangular system detected; refresh the lbfgs memory.
          if(iprint .ge. 1) write (6, 1005)
          info   = 0
          col    = 0
@@ -748,9 +748,9 @@ c                                                   from 'cauchy').
       if (info .ne. 0) goto 444
 
 c-jlm-jn   call the direct method. 
-
+      
       call subsm( n, m, nfree, index, l, u, nbd, z, r, xp, ws, wy,
-     +           theta, x, g, col, head, iword, wa, wn, iprint, info)
+     +     theta, x, g, col, head, iword, wa, wn, iprint, info)
  444  continue
       if (info .ne. 0) then 
 c          singular triangular system detected;
@@ -765,16 +765,16 @@ c          refresh the lbfgs memory and restart the iteration.
          call timer(cpu2) 
          sbtime = sbtime + cpu2 - cpu1 
          goto 222
-      endif
- 
+      endif      
+                 
       call timer(cpu2) 
       sbtime = sbtime + cpu2 - cpu1 
  555  continue
  
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-c     Line search and optimality tests.
-c
+c                                                                      c
+c     Line search and optimality tests.                                c
+c                                                                      c
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
  
 c     Generate the search direction d:=z-x.
@@ -793,7 +793,7 @@ c          restore the previous iterate.
          call dcopy(n,r,1,g,1)
          f = fold
          if (col .eq. 0) then
-c             abnormal termination.
+c     abnormal termination.
             if (info .eq. 0) then
                info = -9
 c                restore the actual number of f and g evaluations etc.
@@ -1417,8 +1417,8 @@ c     ************
       parameter        (one=1.0d0,zero=0.0d0)
  
 c     Check the status of the variables, reset iwhere(i) if necessary;
-c       compute the Cauchy direction d and the breakpoints t; initialize
-c       the derivative f1 and the vector p = W'd (for theta = 1).
+c     compute the Cauchy direction d and the breakpoints t; initialize
+c     the derivative f1 and the vector p = W'd (for theta = 1).
  
       if (sbgnrm .le. zero) then
          if (iprint .ge. 0) write (6,*) 'Subgnorm = 0.  GCP = X.'
@@ -1441,8 +1441,8 @@ c     We set p to zero and build it up as we determine d.
   20  continue 
 
 c     In the following loop we determine for each variable its bound
-c        status and its breakpoint, and update p accordingly.
-c        Smallest breakpoint is identified.
+c     status and its breakpoint, and update p accordingly.
+c     Smallest breakpoint is identified.
 
       do 50 i = 1, n 
          neggi = -g(i)      
@@ -1586,7 +1586,7 @@ c           (if iter=2, initialize heap).
          tj = t(nleft)
          ibp = iorder(nleft)  
       endif 
-         
+      
       dt = tj - tj0
  
       if (dt .ne. zero .and. iprint .ge. 100) then
@@ -1639,8 +1639,8 @@ c        temporarily set f1 and f2 for col=0.
 c                          update c = c + dt*p.
          call daxpy(col2,dt,p,1,c,1)
  
-c           choose wbp,
-c           the row of W corresponding to the breakpoint encountered.
+c     choose wbp,
+c     the row of W corresponding to the breakpoint encountered.
          pointr = head
          do 70 j = 1,col
             wbp(j) = wy(ibp,pointr)
@@ -1659,8 +1659,8 @@ c           update p = p - dibp*wbp.
          call daxpy(col2,-dibp,wbp,1,p,1)
  
 c           complete updating f1 and f2 while col > 0.
-         f1 = f1 + dibp*wmc
-         f2 = f2 + 2.0d0*dibp*wmp - dibp2*wmw
+         f1 = f1 + dibp * wmc
+         f2 = f2 + 2.0d0 * dibp * wmp - dibp2*wmw
       endif
 
       f2 = max(epsmch * f2_org, f2)
@@ -3542,7 +3542,7 @@ c        function, and derivative at stp.
 
       else
 
-c        Restore local variables.
+c     Restore local variables.
 
          if (isave(1) .eq. 1) then
             brackt = .true.
@@ -3567,9 +3567,9 @@ c        Restore local variables.
       endif
 
 c     If psi(stp) <= 0 and f'(stp) >= 0 for some step, then the
-c     algorithm enters the second stage.
+c     algorithm enters the second stage. 
 
-      ftest = finit + stp * gtest
+      ftest = finit + stp * gtest 
       if (stage .eq. 1 .and. f .le. ftest .and. g .ge. zero) 
      +   stage = 2
 
@@ -3791,16 +3791,16 @@ c
 c     **********
       double precision zero,p66,two,three
       parameter(zero=0.0d0,p66=0.66d0,two=2.0d0,three=3.0d0)
-   
+      
       double precision gamma,p,q,r,s,sgnd,stpc,stpf,stpq,theta
-
+      
       sgnd = dp*(dx/abs(dx))
-
+      
 c     First case: A higher function value. The minimum is bracketed. 
 c     If the cubic step is closer to stx than the quadratic step, the 
 c     cubic step is taken, otherwise the average of the cubic and 
 c     quadratic steps is taken.
-
+      
       if (fp .gt. fx) then
          theta = three*(fx - fp)/(stp - stx) + dx + dp
          s = max(abs(theta),abs(dx),abs(dp))
