@@ -4137,7 +4137,7 @@ c        function, and derivative at stp.
          stx = zero
          fx = finit
          gx = ginit
-         sty = zero
+         sty = stp
          fy = finit
          gy = ginit
          stmin = zero
@@ -4359,36 +4359,26 @@ c     **********
 
 c     Check first condition if first condition is violated.  Gone too far
 c     is dx really the derivative that I need?
-      if (fp .ge. finit + ftol * ginit * stp) then 
-         stpmax = stp
+      if (fp .ge. finit + ftol * ginit * stp * dp) then 
+c     stpmax = stp
+         sty = stp
+         fy = fp
+         dy = dp
       else
 c     if second condition is violated not gone far enough
-         if (-gp .le. gtol*(ginit)) then
-            stpmin = stp
+         if (-gp * dp .le. gtol*(ginit) * dp) then
+c     stpmin = stp
+            stx = stp
+            fx = fp
+            dx = dp
          else
             stpf = stpf
 c     Question:  Why expand?
          endif         
       endif   
-      stpf = (stp)/two
+      stpf = (sty + stx)/two
       if ((min(stx,sty) .le. stp) .and. stp .le. max(stx,sty)) then
          brackt = .true.
-      endif
-c     Update the interval which contains a minimizer.
-
-      if (fp .gt. fx) then
-         sty = stp
-         fy = fp
-         dy = dp
-      else
-         if (sgnd .lt. zero) then
-            sty = stx
-            fy = fx
-            dy = dx
-         endif
-         stx = stp
-         fx = fp
-         dx = dp
       endif
 
 c     Compute the new step.
