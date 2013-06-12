@@ -39,7 +39,7 @@ c
 c
 c           J.L Morales  Departamento de Matematicas, 
 c                        Instituto Tecnologico Autonomo de Mexico
-c                        Mexico D.F. Mexico.
+c                        Mexico D.F. Mexico
 c
 c                        March  2011    
 c                                                 
