@@ -4171,7 +4171,7 @@ c     Restore local variables.
          width1 = dsave(13) 
 
       endif
-
+      ftest = finit + stp * gtest 
 c     Test for warnings.
 
       if (brackt .and. (stp .le. stmin .or. stp .ge. stmax))
@@ -4187,8 +4187,8 @@ c     Test for convergence.
 c     Change abs(g) to -g 
 c     Note that -ginit is always positive
 c     if (f .le. ftest .and. abs(g) .le. gtol*(-ginit)) 
-      if (f .le. ftest .and. -g .le. gtol*(-ginit)) 
-     +   task = 'CONVERGENCE'
+      if ((f .le. ftest) .and. (-g .le. gtol*(-ginit))) 
+     +     task = 'CONVERGENCE'
 
 c     Test for termination.
 
@@ -4197,7 +4197,7 @@ c     Test for termination.
 c     Run the procedure This part is similar to dcstep
 
       call linesearchstep(stx,fx,gx,sty,fy,gy,stp,f,g,
-     +     brackt,stmin,stmax,finit,ginit)
+     +     brackt,stmin,stmax,finit,ginit,ftest,ftol,gtol)
 
 c     Set the minimum and maximum steps allowed for stp.
 
@@ -4253,10 +4253,10 @@ c     Save local variables.
 c====================== The end of lineww ==============================
 
       subroutine linesearchstep(stx,fx,dx,sty,fy,dy,stp,fp,dp,brackt,
-     +                  stpmin,stpmax,finit,ginit)
+     +                  stpmin,stpmax,finit,ginit,ftest,ftol,gtol)
       logical brackt
       double precision stx,fx,dx,sty,fy,dy,stp,fp,dp,stpmin,stpmax,finit
-      double precision ginit
+      double precision ginit,ftest,ftol,gtol
 
 c     **********
 c
@@ -4353,26 +4353,24 @@ c     **********
       double precision zero,p66,two,three
       parameter(zero=0.0d0,p66=0.66d0,two=2.0d0,three=3.0d0)
       
-      double precision gamma,p,q,r,s,sgnd,stpc,stpf,stpq,theta
-      
-      sgnd = dp*(dx/abs(dx))
+      double precision gamma,p,q,r,s,stpc,stpf
 
 c     Check first condition if first condition is violated.  Gone too far
-c     is dx really the derivative that I need?
-      if (fp .ge. finit + ftol * ginit * stp * dp) then 
+      if (fp .ge. ftest) then 
 c     stpmax = stp
          sty = stp
          fy = fp
          dy = dp
       else
 c     if second condition is violated not gone far enough
-         if (-gp * dp .le. gtol*(ginit) * dp) then
+         if (-dp .ge. gtol*(-ginit)) then
 c     stpmin = stp
             stx = stp
             fx = fp
             dx = dp
          else
-            stpf = stpf
+            print *, 'You shouldnt ever have to enter here'
+c            task = 'ERROR:  USER SHOULDNT ENTER IN THIS ELSE STATEMENT'
 c     Question:  Why expand?
          endif         
       endif   
