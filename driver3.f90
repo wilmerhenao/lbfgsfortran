@@ -44,229 +44,217 @@
 !
 !     **************
 
-program driver
+      program driver
 
-  !     This time-controlled driver shows that it is possible to terminate
-  !     a run by elapsed CPU time, and yet be able to print all desired
-  !     information. This driver also illustrates the use of two
-  !     stopping criteria that may be used in conjunction with a limit
-  !     on execution time. The sample problem used here is the same as in 
-  !     driver1 and driver2 (the extended Rosenbrock function with bounds 
-  !     on the variables).
+!     This time-controlled driver shows that it is possible to terminate
+!     a run by elapsed CPU time, and yet be able to print all desired
+!     information. This driver also illustrates the use of two
+!     stopping criteria that may be used in conjunction with a limit
+!     on execution time. The sample problem used here is the same as in 
+!     driver1 and driver2 (the extended Rosenbrock function with bounds 
+!     on the variables).
 
-  implicit none
+      implicit none
 
-  !     We specify a limit on the CPU time (tlimit = 10 seconds)
-  !
-  !     We suppress the default output (iprint = -1). The user could 
-  !       also elect to use the default output by choosing iprint >= 0.)
-  !     We suppress the code-supplied stopping tests because we will
-  !       provide our own termination conditions
-  !     We specify the dimension n of the sample problem and the number
-  !        m of limited memory corrections stored. 
+!     We specify a limit on the CPU time (tlimit = 10 seconds)
+!
+!     We suppress the default output (iprint = -1). The user could 
+!       also elect to use the default output by choosing iprint >= 0.)
+!     We suppress the code-supplied stopping tests because we will
+!       provide our own termination conditions
+!     We specify the dimension n of the sample problem and the number
+!        m of limited memory corrections stored. 
 
-  integer,  parameter    :: n = 1000, m = 10, iprint = -1
-  integer,  parameter    :: dp = kind(1.0d0)
-  real(dp), parameter    :: factr  = 0.0d0, pgtol  = 0.0d0, &
-       tlimit = 10.0d0
-  !
-  character(len=60)      :: task, csave
-  logical                :: lsave(4)
-  integer                :: isave(44)
-  real(dp)               :: f
-  real(dp)               :: dsave(29)
-  integer,  allocatable  :: nbd(:), iwa(:)
-  real(dp), allocatable  :: x(:), l(:), u(:), g(:), wa(:)
-  !
-  real(dp)               :: t1, t2, time1, time2
-  integer                :: i, j
+      integer,  parameter    :: n = 3, m = 5, iprint = 0
+      integer,  parameter    :: dp = kind(1.0d0)
+      real(dp), parameter    :: factr  = 0.0d0, pgtol  = 0.0d0, &
+                                tlimit = 10.0d0
+!
+      character(len=60)      :: task, csave
+      logical                :: lsave(4)
+      integer                :: isave(44)
+      real(dp)               :: f
+      real(dp)               :: dsave(29)
+      integer,  allocatable  :: nbd(:), iwa(:)
+      real(dp), allocatable  :: x(:), l(:), u(:), g(:), wa(:)
+!
+      real(dp)               :: t1, t2, time1, time2
+      integer                :: i, j
 
-  allocate ( nbd(n), x(n), l(n), u(n), g(n) )
-  allocate ( iwa(3*n) )
-  allocate ( wa(2*m*n + 5*n + 11*m*m + 8*m) )
+      allocate ( nbd(n), x(n), l(n), u(n), g(n) )
+      allocate ( iwa(3*n) )
+      allocate ( wa(2*m*n + 5*n + 11*m*m + 8*m) )
 
-  !     This time-controlled driver shows that it is possible to terminate
-  !     a run by elapsed CPU time, and yet be able to print all desired
-  !     information. This driver also illustrates the use of two
-  !     stopping criteria that may be used in conjunction with a limit
-  !     on execution time. The sample problem used here is the same as in 
-  !     driver1 and driver2 (the extended Rosenbrock function with bounds 
-  !     on the variables).
+!     This time-controlled driver shows that it is possible to terminate
+!     a run by elapsed CPU time, and yet be able to print all desired
+!     information. This driver also illustrates the use of two
+!     stopping criteria that may be used in conjunction with a limit
+!     on execution time. The sample problem used here is the same as in 
+!     driver1 and driver2 (the extended Rosenbrock function with bounds 
+!     on the variables).
+ 
+!     We now specify nbd which defines the bounds on the variables:
+!                    l   specifies the lower bounds,
+!                    u   specifies the upper bounds. 
+ 
+!     First set bounds on the odd-numbered variables.
 
-  !     We now specify nbd which defines the bounds on the variables:
-  !                    l   specifies the lower bounds,
-  !                    u   specifies the upper bounds. 
+      do 10 i=1, n,2
+         nbd(i)=2
+         l(i)=1.0d0
+         u(i)=1.0d2
+  10  continue
 
-  !     First set bounds on the odd-numbered variables.
+!     Next set bounds on the even-numbered variables.
 
-  do 10 i=1, n,2
-     nbd(i)=2
-     l(i)=1.0d0
-     u(i)=1.0d2
-10   continue
+      do 12 i=2, n,2
+         nbd(i)=2
+         l(i)=-1.0d2
+         u(i)=1.0d2
+  12   continue
 
-     !     Next set bounds on the even-numbered variables.
+!     We now define the starting point.
 
-     do 12 i=2, n,2
-        nbd(i)=2
-        l(i)=-1.0d2
-        u(i)=1.0d2
-12      continue
+      do 14 i=1, n
+         x(i)=3.0d0
+  14  continue
+ 
+!     We now write the heading of the output.
 
-        !     We now define the starting point.
+      write (6,16)
+  16  format(/,5x, 'Solving sample problem.',&
+             /,5x, ' (f = 0.0 at the optimal solution.)',/) 
 
-        do 14 i=1, n
-           x(i)=3.0d0
-14         continue
+!     We start the iteration by initializing task.
+ 
+      task = 'START'
 
-           !     We now write the heading of the output.
+!        ------- the beginning of the loop ----------
 
-           write (6,16)
-16         format(/,5x, 'Solving sample problem.',&
-                /,5x, ' (f = 0.0 at the optimal solution.)',/) 
+!     We begin counting the CPU time.
 
-           !     We start the iteration by initializing task.
+      call timer(time1)
 
-           task = 'START'
-
-           !        ------- the beginning of the loop ----------
-
-           !     We begin counting the CPU time.
-
-           call timer(time1)
-
-           do while( task(1:2).eq.'FG'.or.task.eq.'NEW_X'.or. &
+      do while( task(1:2).eq.'FG'.or.task.eq.'NEW_X'.or. &
                 task.eq.'START')
+         if(task .eq. 'NEW_X') then
+            write (6,'(2(a,i5,4x),a,1p,d12.5,4x,a,1p,d12.5)') 'Iterate' &
+            ,isave(30),'nfg =',isave(34),'f =',f,'|proj g| =',dsave(13)
+         endif
+         
+!     This is the call to the L-BFGS-B code.
+ 
+         call setulb(n,m,x,l,u,nbd,f,g,factr,pgtol,wa,iwa, &
+                     task,iprint, csave,lsave,isave,dsave)
+ 
+         if (task(1:2) .eq. 'FG') then
 
-              !     This is the call to the L-BFGS-B code.
+!        the minimization routine has returned to request the
+!        function f and gradient g values at the current x.
+!        Before evaluating f and g we check the CPU time spent.
 
-              call setulb(n,m,x,l,u,nbd,f,g,factr,pgtol,wa,iwa, &
-                   task,iprint, csave,lsave,isave,dsave)
+         call timer(time2)
+         if (time2-time1 .gt. tlimit) then
+            task='STOP: CPU EXCEEDING THE TIME LIMIT.'
 
-              if (task(1:2) .eq. 'FG') then
+!          Note: Assigning task(1:4)='STOP' will terminate the run;
+!          setting task(7:9)='CPU' will restore the information at
+!          the latest iterate generated by the code so that it can
+!          be correctly printed by the driver.
 
-                 !        the minimization routine has returned to request the
-                 !        function f and gradient g values at the current x.
-                 !        Before evaluating f and g we check the CPU time spent.
+!          In this driver we have chosen to disable the
+!          printing options of the code (we set iprint=-1);
+!          instead we are using customized output: we print the
+!          latest value of x, the corresponding function value f and
+!          the norm of the projected gradient |proj g|.
 
-                 call timer(time2)
-                 if (time2-time1 .gt. tlimit) then
-                    task='STOP: CPU EXCEEDING THE TIME LIMIT.'
+!          We print out the information contained in task.
 
-                    !          Note: Assigning task(1:4)='STOP' will terminate the run;
-                    !          setting task(7:9)='CPU' will restore the information at
-                    !          the latest iterate generated by the code so that it can
-                    !          be correctly printed by the driver.
+              write (6,*) task
 
-                    !          In this driver we have chosen to disable the
-                    !          printing options of the code (we set iprint=-1);
-                    !          instead we are using customized output: we print the
-                    !          latest value of x, the corresponding function value f and
-                    !          the norm of the projected gradient |proj g|.
+!          We print the latest iterate contained in wa(j+1:j+n), where
+ 
+              j = 3*n+2*m*n+11*m**2
+              write (6,*) 'Latest iterate X ='
+              write (6,'((1x,1p, 6(1x,d11.4)))') (wa(i),i = j+1,j+n) 
 
-                    !          We print out the information contained in task.
+!          We print the function value f and the norm of the projected
+!          gradient |proj g| at the last iterate; they are stored in
+!          dsave(2) and dsave(13) respectively.
 
-                    write (6,*) task
+              write (6,'(a,1p,d12.5,4x,a,1p,d12.5)') &
+              'At latest iterate   f =',dsave(2),'|proj g| =',dsave(13)
+            else
 
-                    !          We print the latest iterate contained in wa(j+1:j+n), where
+!          The time limit has not been reached and we compute
+!          the function value f for the sample problem.
 
-                    j = 3*n+2*m*n+11*m**2
-                    write (6,*) 'Latest iterate X ='
-                    write (6,'((1x,1p, 6(1x,d11.4)))') (wa(i),i = j+1,j+n) 
+              f=.25d0*(x(1)-1.d0)**2
+              do 20 i=2, n
+                 f=f+(x(i)-x(i-1)**2)**2
+  20          continue
+              f=4.d0*f
 
-                    !          We print the function value f and the norm of the projected
-                    !          gradient |proj g| at the last iterate; they are stored in
-                    !          dsave(2) and dsave(13) respectively.
+!          Compute gradient g for the sample problem.
 
-                    write (6,'(a,1p,d12.5,4x,a,1p,d12.5)') &
-                         'At latest iterate   f =',dsave(2),'|proj g| =',dsave(13)
-                 else
+               t1 = x(2) - x(1)**2
+               g(1) = 2.d0*(x(1)-1.d0)-1.6d1*x(1)*t1
+               do 22 i=2,n-1
+                  t2=t1
+                  t1=x(i+1)-x(i)**2
+                  g(i)=8.d0*t2-1.6d1*x(i)*t1
+  22           continue
+               g(n)=8.d0*t1
+            endif
 
-                    !          The time limit has not been reached and we compute
-                    !          the function value f for the sample problem.
+!          go back to the minimization routine.
+         else
 
-                    f=.25d0*(x(1)-1.d0)**2
-                    do 20 i=2, n
-                       f=f+abs((x(i)-x(i-1)**2))
-20                     continue
-                       f=4.d0*f
+           if (task(1:5) .eq. 'NEW_X') then        
 
-                       !          Compute gradient g for the sample problem.
-                       if(x(2) > x(1)**2) then
-                          g(1) = 2.d0*(x(1)-1.d0)-8d0*x(1)
-                       else
-                          g(1) = 2.d0*(x(1)-1.d0)+8d0*x(1)
-                       endif
-                       do 22 i=2,n-1
-                          if(x(i+1)>x(i)**2) then
-                             if(x(i)>x(i-1)**2) then
-                                g(i)=4d0*(1d0 - 2d0*x(i))
-                             else
-                                g(i)=4d0*(-1d0 - 2d0*x(i))
-                             endif
-                          else
-                             if(x(i)>x(i-1)**2) then
-                                g(i)=4d0*(1d0 + 2d0*x(i))
-                             else
-                                g(i)=4d0*(-1d0 + 2d0*x(i))
-                             endif
-                          endif
-22                        continue
-                          g(n)=4.d0
-                          if(x(n)<x(n-1)**2) then
-                             g(n)=-4d0
-                          endif
+!        the minimization routine has returned with a new iterate.
+!        The time limit has not been reached, and we test whether
+!        the following two stopping tests are satisfied:
 
-                       endif
+!        1) Terminate if the total number of f and g evaluations
+!             exceeds 900.
 
-                       !          go back to the minimization routine.
-                    else
+            if (isave(34) .ge. 900) &
+            task='STOP: TOTAL NO. of f AND g EVALUATIONS EXCEEDS LIMIT'
 
-                       if (task(1:5) .eq. 'NEW_X') then        
+!        2) Terminate if  |proj g|/(1+|f|) < 1.0d-10.
 
-                          !        the minimization routine has returned with a new iterate.
-                          !        The time limit has not been reached, and we test whether
-                          !        the following two stopping tests are satisfied:
+            if (dsave(13) .le. 1.d-10*(1.0d0 + abs(f))) &
+            task='STOP: THE PROJECTED GRADIENT IS SUFFICIENTLY SMALL'
 
-                          !        1) Terminate if the total number of f and g evaluations
-                          !             exceeds 900.
+!        We wish to print the following information at each iteration:
+!          1) the current iteration number, isave(30),
+!          2) the total number of f and g evaluations, isave(34),
+!          3) the value of the objective function f,
+!          4) the norm of the projected gradient,  dsve(13)
+!
+!        See the comments at the end of driver1 for a description
+!        of the variables isave and dsave.
+         
+            write (6,'(2(a,i5,4x),a,1p,d12.5,4x,a,1p,d12.5)') 'Iterate' &
+            ,isave(30),'nfg =',isave(34),'f =',f,'|proj g| =',dsave(13)
 
-                          if (isave(34) .ge. 900) &
-                               task='STOP: TOTAL NO. of f AND g EVALUATIONS EXCEEDS LIMIT'
+!        If the run is to be terminated, we print also the information
+!        contained in task as well as the final value of x.
 
-                          !        2) Terminate if  |proj g|/(1+|f|) < 1.0d-10.
+            if (task(1:4) .eq. 'STOP') then
+               write (6,*) task  
+               write (6,*) 'Final X='
+               write (6,'((1x,1p, 6(1x,d11.4)))') (x(i),i = 1,n)
+            endif
 
-                          if (dsave(13) .le. 1.d-10*(1.0d0 + abs(f))) &
-                               task='STOP: THE PROJECTED GRADIENT IS SUFFICIENTLY SMALL'
+          endif
+        end if 
+      end do
+ 
+!     If task is neither FG nor NEW_X we terminate execution.
 
-                          !        We wish to print the following information at each iteration:
-                          !          1) the current iteration number, isave(30),
-                          !          2) the total number of f and g evaluations, isave(34),
-                          !          3) the value of the objective function f,
-                          !          4) the norm of the projected gradient,  dsve(13)
-                          !
-                          !        See the comments at the end of driver1 for a description
-                          !        of the variables isave and dsave.
+      end program driver
 
-                          write (6,'(2(a,i5,4x),a,1p,d12.5,4x,a,1p,d12.5)') 'Iterate' &
-                               ,isave(30),'nfg =',isave(34),'f =',f,'|proj g| =',dsave(13)
-
-                          !        If the run is to be terminated, we print also the information
-                          !        contained in task as well as the final value of x.
-
-                          if (task(1:4) .eq. 'STOP') then
-                             write (6,*) task  
-                             write (6,*) 'Final X='
-                             write (6,'((1x,1p, 6(1x,d11.4)))') (x(i),i = 1,n)
-                          endif
-
-                       endif
-                    end if 
-                 end do
-
-                 !     If task is neither FG nor NEW_X we terminate execution.
-
-               end program driver
-
-               !======================= The end of driver3 ============================
+!======================= The end of driver3 ============================
 
