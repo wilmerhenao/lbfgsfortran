@@ -190,7 +190,12 @@ program driver
                  g(i+1)=g(i+1)+r
                  g(i)=g(i)-4d0*x(i)*r
 20            continue
-
+                 write (6,*) 'Current X for debugging ='
+                 write (6,'((1x,1p, 6(1x,d11.4)))') (x(i),i = 1,n)
+                 write (6,*) 'Current g for debugging ='
+                 write (6,'((1x,1p, 6(1x,d11.4)))') (g(i),i = 1,n)
+                 write (6,*) 'Current f value ='
+                 write (*,'(A, F8.3)') 'f=', f
            endif
                  
                  !          go back to the minimization routine.

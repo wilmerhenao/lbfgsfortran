@@ -787,7 +787,7 @@ c     Generate the search direction d:=z-x.
       call lnsrlb(n,l,u,nbd,x,f,fold,gd,gdold,g,d,r,t,z,stp,dnorm,
      +            dtd,xstep,stpmx,iter,ifun,iback,nfgv,info,task,
      +            boxed,cnstnd,csave,isave(22),dsave(17))
-      if (info .ne. 0 .or. iback .ge. 20) then
+      if (info .ne. 0 .or. iback .ge. 100) then
 c          restore the previous iterate.
          call dcopy(n,t,1,x,1)
          call dcopy(n,r,1,g,1)
@@ -3199,14 +3199,14 @@ c     Compute wv = W'Zd.
             k = ind(j)
             temp1 = temp1 + wy(k,pointr)*d(j)
             temp2 = temp2 + ws(k,pointr)*d(j)
-  10     continue
+ 10      continue
          wv(i) = temp1
          wv(col + i) = theta*temp2
          pointr = mod(pointr,m) + 1
-  20  continue
- 
+ 20   continue
+      
 c     Compute wv:=K^(-1)wv.
-
+      
       m2 = 2*m
       col2 = 2*col
       call dtrsl(wn,m2,col2,wv,11,info)
@@ -4217,9 +4217,6 @@ c     Force the step to be within the bounds stpmax and stpmin.
 c     If further progress is not possible, let stp be the best
 c     point obtained during the search.
 
-      if (brackt .and. (stp .le. stmin .or. stp .ge. stmax)
-     +   .or. (brackt .and. stmax-stmin .le. xtol*stmax)) stp = stx
-
 c     Obtain another function and derivative.
 
       task = 'FG'
@@ -4354,7 +4351,7 @@ c     **********
       parameter(zero=0.0d0,p66=0.66d0,two=2.0d0,three=3.0d0)
       
       double precision gamma,p,q,r,s,stpc,stpf
-
+      
 c     Check first condition if first condition is violated.  Gone too far
       if (fp .ge. ftest) then 
 c     stpmax = stp
@@ -4378,11 +4375,11 @@ c     Question:  Why expand?
       if ((min(stx,sty) .le. stp) .and. stp .le. max(stx,sty)) then
          brackt = .true.
       endif
-
+      
 c     Compute the new step.
-
+      
       stp = stpf
-
+      
       return
       end
       
