@@ -65,7 +65,7 @@ program driver
   !     We specify the dimension n of the sample problem and the number
   !        m of limited memory corrections stored. 
 
-  integer,  parameter    :: n = 1000, m = 10, iprint = -1
+  integer,  parameter    :: n = 100, m = 10, iprint = -1
   integer,  parameter    :: dp = kind(1.0d0)
   real(dp), parameter    :: factr  = 0.0d0, pgtol  = 0.0d0, &
        tlimit = 10.0d0
@@ -84,7 +84,7 @@ program driver
   allocate ( nbd(n), x(n), l(n), u(n), g(n) )
   allocate ( iwa(3*n) )
   allocate ( wa(2*m*n + 5*n + 11*m*m + 8*m) )
-
+  
   !     This time-controlled driver shows that it is possible to terminate
   !     a run by elapsed CPU time, and yet be able to print all desired
   !     information. This driver also illustrates the use of two
@@ -101,24 +101,26 @@ program driver
 
   do 10 i=1, n,2
      nbd(i)=2
-     l(i)=-1.0d2
-     u(i)=1.0d2
+     l(i)=-1.0d3
+     u(i)=1.0d3
 10   continue
 
      !     Next set bounds on the even-numbered variables.
 
      do 12 i=2, n,2
         nbd(i)=2
-        l(i)=-1.0d2
-        u(i)=1.0d2
+        l(i)=-1.0d3
+        u(i)=1.0d3
 12      continue
 
         !     We now define the starting point.
 
         do 14 i=1, n
-           x(i)=3.0d0
+           x(i)=0.51d0
 14         continue
-
+!        x(1) = 0.5d0
+!x(2) = 0.6d0
+!x(3) = 0.7d0
            !     We now write the heading of the output.
 
            write (6,16)
@@ -185,6 +187,10 @@ program driver
                     !          The time limit has not been reached and we compute
                     !          the function value f for the sample problem.
 
+                    do 1823 i=1, n
+                       g(i)=0d0
+1823                   continue
+
                     f=abs(1d0-x(1))/4
                     g(1)=sign(1d0,x(1)-1)/4
                     do 20 i=1, (n-1)
@@ -206,7 +212,7 @@ program driver
                           !        1) Terminate if the total number of f and g evaluations
                           !             exceeds 900.
 
-                          if (isave(34) .ge. 900) &
+                          if (isave(34) .ge. 90000) &
                                task='STOP: TOTAL NO. of f AND g EVALUATIONS EXCEEDS LIMIT'
 
                           !        2) Terminate if  |proj g|/(1+|f|) < 1.0d-10.

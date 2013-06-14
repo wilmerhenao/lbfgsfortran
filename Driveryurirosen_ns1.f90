@@ -63,7 +63,7 @@ program driver
   !     We specify the dimension n of the sample problem and the number
   !        m of limited memory corrections stored. 
   
-  integer,  parameter    :: n = 3, m = 5, iprint = -1
+  integer,  parameter    :: n = 10, m = 1, iprint = -1
   integer,  parameter    :: dp = kind(1.0d0)
   real(dp), parameter    :: factr  = 0.0d0, pgtol  = 0.0d0, &
        tlimit = 10.0d0
@@ -101,22 +101,24 @@ program driver
      nbd(i)=2
      l(i)=-1.0d2
      u(i)=1.0d2
-10 continue
+10   continue
      
      !     Next set bounds on the even-numbered variables.
-
+     
      do 12 i=2, n,2
         nbd(i)=2
-        l(i)=-1.0d2
-        u(i)=1.0d2
-12   continue
-
+        l(i)=0d0
+        u(i)=0.5d0
+12      continue
+        
         !     We now define the starting point.
 
-     do 14 i=1, n
-        x(i)=3.0d0
-14   continue
-
+        do 14 i=1, n
+           x(i)=0.4d0
+14         continue
+!        x(1) = 0.5d0
+!x(2) = 0.6d0
+!x(3) = 0.7d0
            !     We now write the heading of the output.
 
      write (6,16)
@@ -140,7 +142,6 @@ program driver
 
         call setulb(n,m,x,l,u,nbd,f,g,factr,pgtol,wa,iwa, &
              task,iprint, csave,lsave,isave,dsave)
-
         if (task(1:2) .eq. 'FG') then
 
                  !        the minimization routine has returned to request the
@@ -183,19 +184,24 @@ program driver
               !          The time limit has not been reached and we compute
               !          the function value f for the sample problem.
               
-              f=0d0
+              do 1823 i=1,n
+                 g(i)=0d0
+1823             continue
+                 
+              f=((1d0-x(1))**2)/4
+              g(1)=-(1-x(1))/2
               do 20 i=1, (n-1)
                  f=f+abs(1d0+x(i+1)-2d0*x(i)**2)
                  r=sign(1d0,1+x(i+1)-2d0*x(i)**2)
                  g(i+1)=g(i+1)+r
                  g(i)=g(i)-4d0*x(i)*r
-20            continue
-                 write (6,*) 'Current X for debugging ='
-                 write (6,'((1x,1p, 6(1x,d11.4)))') (x(i),i = 1,n)
-                 write (6,*) 'Current g for debugging ='
-                 write (6,'((1x,1p, 6(1x,d11.4)))') (g(i),i = 1,n)
-                 write (6,*) 'Current f value ='
-                 write (*,'(A, F8.3)') 'f=', f
+20               continue
+                 !        write (6,*) 'Current X for debugging ='
+                 !                 write (6,'((1x,1p, 6(1x,d11.4)))') (x(i),i = 1,n)
+                 !                 write (6,*) 'Current g for debugging ='
+                 !                 write (6,'((1x,1p, 6(1x,d11.4)))') (g(i),i = 1,n)
+                 !                 write (6,*) 'Current f value ='
+                 !                 write (*,'(A, F8.3)') 'f=', f
            endif
                  
                  !          go back to the minimization routine.
@@ -210,7 +216,7 @@ program driver
               !        1) Terminate if the total number of f and g evaluations
               !             exceeds 900.
               
-              if (isave(34) .ge. 900) &
+              if (isave(34) .ge. 90000) &
                    task='STOP: TOTAL NO. of f AND g EVALUATIONS EXCEEDS LIMIT'
               
               !        2) Terminate if  |proj g|/(1+|f|) < 1.0d-10.
@@ -244,7 +250,9 @@ program driver
      end do
      
      !     If task is neither FG nor NEW_X we terminate execution.
-     
+     write (6,*) task  
+     write (6,*) 'Final X='
+     write (6,'((1x,1p, 6(1x,d11.4)))') (x(i),i = 1,n)
    end program driver
    
    !======================= The end of driver3 ============================

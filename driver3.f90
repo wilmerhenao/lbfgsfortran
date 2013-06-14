@@ -65,7 +65,7 @@
 !     We specify the dimension n of the sample problem and the number
 !        m of limited memory corrections stored. 
 
-      integer,  parameter    :: n = 3, m = 5, iprint = 0
+      integer,  parameter    :: n = 100, m = 5, iprint = 0
       integer,  parameter    :: dp = kind(1.0d0)
       real(dp), parameter    :: factr  = 0.0d0, pgtol  = 0.0d0, &
                                 tlimit = 10.0d0
@@ -101,7 +101,7 @@
 
       do 10 i=1, n,2
          nbd(i)=2
-         l(i)=1.0d0
+         l(i)=-1.0d2
          u(i)=1.0d2
   10  continue
 
@@ -109,14 +109,14 @@
 
       do 12 i=2, n,2
          nbd(i)=2
-         l(i)=-1.0d2
-         u(i)=1.0d2
+         l(i)=0d0
+         u(i)=0.5d0
   12   continue
 
 !     We now define the starting point.
 
       do 14 i=1, n
-         x(i)=3.0d0
+         x(i)=0.3d0
   14  continue
  
 !     We now write the heading of the output.
