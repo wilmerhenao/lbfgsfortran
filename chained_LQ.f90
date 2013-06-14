@@ -190,17 +190,11 @@ program driver
 1823          continue
 
               do 1844 i=1, n-1
-                 tt2=x(i)**2+(x(i+1)-1)**2+x(i+1)-1d0
-                 tt3=-x(i)**2-(x(i+1)-1)**2+x(i+1)+1d0
-                 if(tt2.ge.tt3) then
-                    f=f+tt2
-                    g(i)=g(i)+2d0*x(i)
-                    g(i+1)=2d0*(x(i+1)-1d0)+1d0
-                 else
-                    f=f+tt3
-                    g(i)=g(i)-2d0*x(i)
-                    g(i+1)=-2d0*(x(i+1)-1d0)+1d0
-                 endif
+                 y = x(i)**2 + x(i+1)**2 - 1d0
+                 f = f - x(i) + 2d0*y + 1.75d0*abs(y)
+                 y = sign(1d0,3.5d0,y) + 4d0
+                 g(i) = g(i) + y*x(i) - 1d0
+                 g(i+1) = y*x(i+1)
 1844          continue
 
               
