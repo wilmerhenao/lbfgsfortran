@@ -76,7 +76,7 @@ program driver
   integer,  allocatable  :: nbd(:), iwa(:)
   real(dp), allocatable  :: x(:), l(:), u(:), g(:), wa(:)
   !
-  real(dp)               :: t1, t2, time1, time2, a, b, c, y, tt2, tt3
+  real(dp)               :: t1, t2, time1, time2, a, b, c, d, p, q, y, tt2, tt3
   integer                :: i, j
   
   allocate ( nbd(n), x(n), l(n), u(n), g(n) )
@@ -190,16 +190,36 @@ program driver
 1823          continue
 
               do 1844 i=1, n-1
-                 a=-x(i)-x(i+1)
-                 b=a+(x(i)**2+x(i+1)**2-1d0)
-                 if(a.ge.b) then
-                    f = f+a
-                    g(i)=g(i)-1d0
-                    g(i+1)=-1d0
+                 a=abs(x(i))
+                 b=abs(x(i+1))
+                 c=x(i)**2+1d0
+                 d=x(i+1)**2+1d0
+                 f=f+b**c+a**d
+                 p=0d0
+                 q=0d0
+                 if(x(i).lt.0d0) then
+                    if(b.gt.p) then
+                       p=log(b)
+                    endif
+                    g(i)=g(i)-d*a**(d-1d0)+2d0*x(i)*p*b**c
                  else
-                    f=f+b
-                    g(i)=g(i)-1+2d0*x(i)
-                    g(i+1)=-1d0+2d0*x(i+1)
+                    if(b.gt.p) then
+                       p=log(b)
+                    endif
+                    g(i)=g(i)+d*a**(d-1d0)+2d0*x(i)*p*b**c
+                 endif
+                 if(x(i+1).eq.0d0) then
+                    g(i+1)=0d0
+                 else if(x(i+1).lt.0d0) then
+                    if(a.gt.q) then
+                       q=log(a)
+                    endif
+                    g(i+1)=-c*b**(c-1d0)+2d0*x(i+1)*q*a**d
+                 else
+                    if(a.gt.q) then
+                       q=log(a)
+                    endif
+                    g(i+1)=c*b**(c-1)+2*x(i+1)*q*a**d
                  endif
 1844          continue
 

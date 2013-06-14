@@ -12,13 +12,15 @@ DRIVER6_90 = chained_CB3v2.f90
 DRIVER7_90 = chained_crescent1.f90
 DRIVER8_90 = chained_crescent2.f90
 DRIVER9_90 = chained_LQ.f90
+DRIVER10_90 = chained_mifflin2.f90
+DRIVER11_90 = gen_brownfunc2.f90
 
 LBFGSB  = lbfgsb.f
 LINPACK = linpack.f
 BLAS    = blas.f
 TIMER   = timer.f
 
-all :  lbfgsb_90_1 lbfgsb_90_2 lbfgsb_90_3 lbfgsb_90_4 lbfgsb_90_5 lbfgsb_90_6 lbfgsb_90_7 lbfgsb_90_8 lbfgsb_90_9
+all :  lbfgsb_90_1 lbfgsb_90_2 lbfgsb_90_3 lbfgsb_90_4 lbfgsb_90_5 lbfgsb_90_6 lbfgsb_90_7 lbfgsb_90_8 lbfgsb_90_9 lbfgsb_90_10 lbfgsb_90_11
 
 lbfgsb_90_1 : $(DRIVER1_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER)
 	$(FC) $(FFLAGS) $(DRIVER1_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER) -o rosenbrocknonsmooth
@@ -46,3 +48,9 @@ lbfgsb_90_8 : $(DRIVER8_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER)
 
 lbfgsb_90_9 : $(DRIVER9_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER)
 	$(FC) $(FFLAGS) $(DRIVER9_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER) -o chained_LQ
+
+lbfgsb_90_10 : $(DRIVER10_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER)
+	$(FC) $(FFLAGS) $(DRIVER10_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER) -o chained_mifflin2
+
+lbfgsb_90_11 : $(DRIVER11_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER)
+	$(FC) $(FFLAGS) $(DRIVER11_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER) -o gen_brownfunc2

@@ -190,17 +190,11 @@ program driver
 1823          continue
 
               do 1844 i=1, n-1
-                 a=-x(i)-x(i+1)
-                 b=a+(x(i)**2+x(i+1)**2-1d0)
-                 if(a.ge.b) then
-                    f = f+a
-                    g(i)=g(i)-1d0
-                    g(i+1)=-1d0
-                 else
-                    f=f+b
-                    g(i)=g(i)-1+2d0*x(i)
-                    g(i+1)=-1d0+2d0*x(i+1)
-                 endif
+                 y = x(i)**2 + x(i+1)**2 - 1d0
+                 f = f - x(i) + 2d0*y + 1.75d0*abs(y)
+                 y = sign(1d0,3.5d0,y) + 4d0
+                 g(i) = g(i) + y*x(i) - 1d0
+                 g(i+1) = y*x(i+1)
 1844          continue
 
               
