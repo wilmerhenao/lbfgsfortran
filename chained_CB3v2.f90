@@ -63,7 +63,7 @@ program driver
   !     We specify the dimension n of the sample problem and the number
   !        m of limited memory corrections stored. 
   
-  integer,  parameter    :: n = 10, m = 1, iprint = -1
+  integer,  parameter    :: n = 10, m = 20, iprint = -1
   integer,  parameter    :: dp = kind(1.0d0)
   real(dp), parameter    :: factr  = 0.0d0, pgtol  = 0.0d0, &
        tlimit = 10.0d0
@@ -107,14 +107,14 @@ program driver
      
      do 12 i=2, n,2
         nbd(i)=2
-        l(i)=0d0
-        u(i)=0.5d0
+        l(i)=-1d2
+        u(i)=1d2
 12      continue
         
         !     We now define the starting point.
 
         do 14 i=1, n
-           x(i)=0.4d0
+           x(i)=rand()
 14         continue
 !        x(1) = 0.5d0
 !x(2) = 0.6d0
@@ -191,27 +191,27 @@ program driver
               c=0.0D+00
               
               do 51 i=1,n-1
-                 g(I+1)=0.0D+00
+                 g(i+1)=0.0D+00
                  a=a+x(i)*x(i)*x(i)*x(i)+x(i+1)*x(i+1)
                  b=b+(2.0D+00-x(i))*(2.0D+00-x(i))+(2.0D+00-x(i+1))*(2.0D+00-x(i+1))
-                 c=c+2.0D+00*exp(-x(I)+x(i+1))
+                 c=c+2.0D+00*exp(-x(i)+x(i+1))
 51               continue
-                    f=dmax1(a,b)
-                    f=dmax1(f,c)
-                    if (f .eq. A) then
+                    f=max(a,b)
+                    f=max(f,c)
+                    if (f .eq. a) then
                        do 53 i=1,n-1
                           g(i)=g(i)+4.0D+00*x(i)*x(i)*x(i)
                           g(i+1)=2.0D+00*x(i+1)
 53                        continue
-                       else if (f .eq. B) then
+                       else if (f .eq. b) then
                           do 54 i=1,n-1
                              g(i)=g(i)+2.0D+00*x(i)-4.0D+00
                              g(i+1)=2.0D+00*x(i+1)-4.0D+00
 54                           continue
                           else
                              do 55 i=1,n-1
-                                g(i)= g(i) - 2.0D+00*dexp(-x(i)+x(i+1))
-                                g(i+1)= 2.0D+00*dexp(-x(i)+x(i+1))
+                                g(i)= g(i) - 2.0D+00*exp(-x(i)+x(i+1))
+                                g(i+1)= 2.0D+00*exp(-x(i)+x(i+1))
 55                              continue
                              endif
                              
