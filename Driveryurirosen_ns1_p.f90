@@ -63,7 +63,7 @@ program driver
   !     We specify the dimension n of the sample problem and the number
   !        m of limited memory corrections stored. 
   
-  integer,  parameter    :: n = 10, iprint = -1, numargs = 0
+  integer,  parameter    :: iprint = -10, numargs = 0
   integer,  parameter    :: dp = kind(1.0d0)
   real(dp), parameter    :: factr  = 0.0d0, pgtol  = 0.0d0, &
        tlimit = 10.0d0
@@ -76,13 +76,19 @@ program driver
   integer,  allocatable  :: nbd(:), iwa(:)
   real(dp), allocatable  :: x(:), l(:), u(:), g(:), wa(:)
   !
-  real(dp)               :: t1, t2, time1, time2
-  integer                :: i, j, m
+  real(dp)               :: t1, t2, time1, time2, p, z, r1
+  integer                :: i, j, m, n
   
   ! Get outside parameters
   CHARACTER(len=32) :: arg
   CALL getarg(1 , arg)
   read (arg,*) m
+  
+  call getarg(2, arg)
+  read(arg,*) n
+
+  call getarg(3, arg)
+  read(arg,*) p
 
 
   allocate ( nbd(n), x(n), l(n), u(n), g(n) )
@@ -127,9 +133,9 @@ program driver
 !x(3) = 0.7d0
            !     We now write the heading of the output.
 
-     write (6,16)
-16   format(/,5x, 'Solving sample problem.',&
-          /,5x, ' (f = 0.0 at the optimal solution.)',/) 
+!     write (6,16)
+!16   format(/,5x, 'Solving sample problem.',&
+!          /,5x, ' (f = 0.0 at the optimal solution.)',/) 
 
      !     We start the iteration by initializing task.
 
@@ -196,11 +202,13 @@ program driver
                  
               f=((1d0-x(1))**2)/4
               g(1)=-(1-x(1))/2
+              
               do 20 i=1, (n-1)
-                 f=f+abs(1d0+x(i+1)-2d0*x(i)**2)
-                 r=sign(1d0,1+x(i+1)-2d0*x(i)**2)
-                 g(i+1)=g(i+1)+r
-                 g(i)=g(i)-4d0*x(i)*r
+                 z=1d0+x(i+1)-2d0*x(i)**2
+                 f=f+abs(z)**p
+                 r1=p*(z**2)**(p/2)/z
+                 g(i+1)=g(i+1)+r1
+                 g(i)=g(i)-4d0*x(i)*r1
 20            continue
                  !        write (6,*) 'Current X for debugging ='
                  !                 write (6,'((1x,1p, 6(1x,d11.4)))') (x(i),i = 1,n)
@@ -239,26 +247,27 @@ program driver
               !        See the comments at the end of driver1 for a description
               !        of the variables isave and dsave.
               
-              write (6,'(2(a,i5,4x),a,1p,d12.5,4x,a,1p,d12.5)') 'Iterate' &
-                   ,isave(30),'nfg =',isave(34),'f =',f,'|proj g| =',dsave(13)
+              !write (6,'(2(a,i5,4x),a,1p,d12.5,4x,a,1p,d12.5)') 'Iterate' &
+              !     ,isave(30),'nfg =',isave(34),'f =',f,'|proj g| =',dsave(13)
               
               !        If the run is to be terminated, we print also the information
               !        contained in task as well as the final value of x.
               
-              if (task(1:4) .eq. 'STOP') then
-                 write (6,*) task  
-                 write (6,*) 'Final X='
-                 write (6,'((1x,1p, 6(1x,d11.4)))') (x(i),i = 1,n)
-              endif
+              !if (task(1:4) .eq. 'STOP') then
+              !   write (6,*) task  
+              !   write (6,*) 'Final X='
+              !   write (6,'((1x,1p, 6(1x,d11.4)))') (x(i),i = 1,n)
+              !endif
               
            endif
         end if 
      end do
      
      !     If task is neither FG nor NEW_X we terminate execution.
-     write (6,*) task  
-     write (6,*) 'Final X='
-     write (6,'((1x,1p, 6(1x,d11.4)))') (x(i),i = 1,n)
+     call timer(time2)
+     write (*,*) 'final results yurirosen run:', m, n, p, isave(30), isave(34), f, dsave(13), time2-time1, task
+     !write (6,*) 'Final X='
+     !write (6,'((1x,1p, 6(1x,d11.4)))') (x(i),i = 1,n)
    end program driver
    
    !======================= The end of driver3 ============================
