@@ -224,7 +224,9 @@ x(1) = -1d0
         else
                  
            if (task(1:5) .eq. 'NEW_X') then
-              
+              ! THE ONLY STOPPING CONDITION THAT WE ARE GOING TO USE
+              if (isave(30) .eq. 10000) &
+                   task= 'STOP: TOTAL NUMBER OF ITERATIONS REACHED 10000'
               !        the minimization routine has returned with a new iterate.
               !        The time limit has not been reached, and we test whether
               !        the following two stopping tests are satisfied:
@@ -232,13 +234,13 @@ x(1) = -1d0
               !        1) Terminate if the total number of f and g evaluations
               !             exceeds 900.
               
-              if (isave(34) .ge. 90000) &
-                   task='STOP: TOTAL NO. of f AND g EVALUATIONS EXCEEDS LIMIT'
+              !if (isave(34) .ge. 90000) &
+              !     task='STOP: TOTAL NO. of f AND g EVALUATIONS EXCEEDS LIMIT'
               
               !        2) Terminate if  |proj g|/(1+|f|) < 1.0d-10.
               
-              if (dsave(13) .le. 1.d-10*(1.0d0 + abs(f))) &
-                   task='STOP: THE PROJECTED GRADIENT IS SUFFICIENTLY SMALL'
+              !if (dsave(13) .le. 1.d-10*(1.0d0 + abs(f))) &
+              !     task='STOP: THE PROJECTED GRADIENT IS SUFFICIENTLY SMALL'
               
               !        We wish to print the following information at each iteration:
               !          1) the current iteration number, isave(30),
