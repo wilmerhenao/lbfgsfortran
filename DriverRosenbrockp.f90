@@ -125,8 +125,10 @@ program driver
         
         !     We now define the starting point.
 
-        do 14 i=1, n
-           x(i)=0.4d0
+
+x(1) = -1d0
+        do 14 i=2, n
+           x(i)=1-2d0**(1-i)
 14         continue
 !        x(1) = 0.5d0
 !x(2) = 0.6d0
