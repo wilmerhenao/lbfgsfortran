@@ -66,7 +66,7 @@ program driver
   integer,  parameter    :: iprint = -10, numargs = 0
   integer,  parameter    :: dp = kind(1.0d0)
   real(dp), parameter    :: factr  = 0.0d0, pgtol  = 0.0d0, &
-       tlimit = 10.0d0
+       tlimit = 1000.0d0
   !
   character(len=60)      :: task, csave
   logical                :: lsave(4)
@@ -124,13 +124,10 @@ program driver
 12      continue
         
         !     We now define the starting point.
-
-        do 14 i=1, n
-           x(i)=0.4d0
-14         continue
-!        x(1) = 0.5d0
-!x(2) = 0.6d0
-!x(3) = 0.7d0
+        x(1) = -1d0
+        do 14 i=2, n
+           x(i)=1-2d0**(1-i)
+14      continue
            !     We now write the heading of the output.
 
 !     write (6,16)
@@ -222,6 +219,9 @@ program driver
         else
                  
            if (task(1:5) .eq. 'NEW_X') then
+              ! THE ONLY STOPPING CONDITION THAT WE ARE GOING TO USE
+              if (isave(30) .eq. 10000) &
+                   task= 'STOP: TOTAL NUMBER OF ITERATIONS REACHED 10000'
               
               !        the minimization routine has returned with a new iterate.
               !        The time limit has not been reached, and we test whether
@@ -230,13 +230,13 @@ program driver
               !        1) Terminate if the total number of f and g evaluations
               !             exceeds 900.
               
-              if (isave(34) .ge. 90000) &
-                   task='STOP: TOTAL NO. of f AND g EVALUATIONS EXCEEDS LIMIT'
+              !if (isave(34) .ge. 90000) &
+              !     task='STOP: TOTAL NO. of f AND g EVALUATIONS EXCEEDS LIMIT'
               
               !        2) Terminate if  |proj g|/(1+|f|) < 1.0d-10.
               
-              if (dsave(13) .le. 1.d-10*(1.0d0 + abs(f))) &
-                   task='STOP: THE PROJECTED GRADIENT IS SUFFICIENTLY SMALL'
+              !if (dsave(13) .le. 1.d-10*(1.0d0 + abs(f))) &
+              !     task='STOP: THE PROJECTED GRADIENT IS SUFFICIENTLY SMALL'
               
               !        We wish to print the following information at each iteration:
               !          1) the current iteration number, isave(30),

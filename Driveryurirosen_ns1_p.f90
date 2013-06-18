@@ -66,7 +66,7 @@ program driver
   integer,  parameter    :: iprint = -10, numargs = 0
   integer,  parameter    :: dp = kind(1.0d0)
   real(dp), parameter    :: factr  = 0.0d0, pgtol  = 0.0d0, &
-       tlimit = 10.0d0
+       tlimit = 1000.0d0
   !
   character(len=60)      :: task, csave
   logical                :: lsave(4)

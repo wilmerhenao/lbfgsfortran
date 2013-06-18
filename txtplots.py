@@ -1,21 +1,21 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-with open("resultslogp.txt") as f:
+with open("rosenbrock.csv") as f:
     data = f.read()
 
 data = data.split('\n')
 
-x = [row.split(' ')[0]] for row in data
+x = [row.split(' ', 30)[0]] for row in data
 y = [row.split(' ')[1]] for row in data
 
 fig = plt.figure()
 
 ax1 = fig.add_subplot(111)
 
-ax1.set_title("Plot title...")    
-ax1.set_xlabel('your x label..')
-ax1.set_ylabel('your y label...')
+ax1.set_title("p vs m")    
+ax1.set_xlabel('m')
+ax1.set_ylabel('p')
 
 ax1.plot(x,y, c='r', label='the data')
 
