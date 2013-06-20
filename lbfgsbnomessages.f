@@ -25,11 +25,11 @@ c     of routine dpmeps to estimate machine precision.
 c
 c     The total work space **wa** required by the new version is 
 c 
-c                  2*m*n + 11m*m + 5*n + 8*m 
+c                  3*m*n + 11m*m + 5*n + 8*m 
 c
 c     the old version required 
 c
-c                  2*m*n + 12m*m + 4*n + 12*m 
+c                  3*m*n + 12m*m + 4*n + 12*m 
 c
 c
 c            J. Nocedal  Department of Electrical Engineering and
@@ -54,7 +54,7 @@ c=============================================================================
       double precision f, factr, pgtol, x(n), l(n), u(n), g(n),
 c
 c-jlm-jn
-     +                 wa(2*m*n + 5*n + 11*m*m + 8*m), dsave(29)
+     +                 wa(3*m*n + 5*n + 11*m*m + 8*m), dsave(29)
  
 c     ************
 c
@@ -256,6 +256,7 @@ c-jlm-jn
          isave(14) = isave(13) + n          ! wt      n
          isave(15) = isave(14) + n          ! wxp     n
          isave(16) = isave(15) + n          ! wa      8*m
+         isave(45) = isave(16) + n          ! lwgs    m*n
       endif
       lws  = isave(4)
       lwy  = isave(5)
@@ -270,13 +271,14 @@ c-jlm-jn
       lt   = isave(14)
       lxp  = isave(15)
       lwa  = isave(16)
+      lwgs = isave(45)
 
       call mainlb(n,m,x,l,u,nbd,f,g,factr,pgtol,
      +  wa(lws),wa(lwy),wa(lsy),wa(lss), wa(lwt),
      +  wa(lwn),wa(lsnd),wa(lz),wa(lr),wa(ld),wa(lt),wa(lxp),
      +  wa(lwa),
      +  iwa(1),iwa(n+1),iwa(2*n+1),task,iprint, 
-     +  csave,lsave,isave(22),dsave)
+     +  csave,lsave,isave(22),dsave,wa(lwgs))
 
       return
 
@@ -287,7 +289,7 @@ c======================= The end of setulb =============================
       subroutine mainlb(n, m, x, l, u, nbd, f, g, factr, pgtol, ws, wy,
      +                  sy, ss, wt, wn, snd, z, r, d, t, xp, wa, 
      +                  index, iwhere, indx2, task,
-     +                  iprint, csave, lsave, isave, dsave)
+     +                  iprint, csave, lsave, isave, dsave,wgs)
       implicit none
       character*60     task, csave
       logical          lsave(4)
@@ -299,7 +301,8 @@ c-jlm-jn
      +                 xp(n), 
      +                 wa(8*m), 
      +                 ws(n, m), wy(n, m), sy(m, m), ss(m, m), 
-     +                 wt(m, m), wn(2*m, 2*m), snd(2*m, 2*m), dsave(29)
+     +                 wt(m, m), wn(2*m, 2*m), snd(2*m, 2*m), dsave(29),
+     +                 wgs(n, m)
 
 c     ************
 c
@@ -365,7 +368,7 @@ c
 c         where pg_i is the ith component of the projected gradient.
 c       On exit pgtol is unchanged.
 c
-c     ws, wy, sy, and wt are double precision working arrays used to
+c     ws, wy, sy, wgs and wt are double precision working arrays used to
 c       store the following information defining the limited memory
 c          BFGS matrix:
 c          ws, of dimension n x m, stores S, the matrix of s-vectors;
@@ -376,7 +379,7 @@ c          yy, of dimension m x m, stores Y'Y;
 c          wt, of dimension m x m, stores the Cholesky factorization
 c                                  of (theta*S'S+LD^(-1)L'); see eq.
 c                                  (2.26) in [3].
-c
+c          wgs, of dimension n x m, stores WGS, the matrix of g-vectors
 c     wn is a double precision working array of dimension 2m x 2m
 c       used to store the LEL^T factorization of the indefinite matrix
 c                 K = [-D -Y'ZZ'Y/theta     L_a'-R_z'  ]
@@ -899,7 +902,7 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c     Update matrices WS and WY and form the middle matrix in B.
 
       call matupd(n,m,ws,wy,sy,ss,d,r,itail,
-     +            iupdat,col,head,theta,rr,dr,stp,dtd)
+     +            iupdat,col,head,theta,rr,dr,stp,dtd,wgs,g)
 
 c     Form the upper half of the pds T = theta*SS + L*D^(-1)*L';
 c        Store T in the upper triangular of the array wt;
@@ -2592,11 +2595,13 @@ c     call dcsrch(f,gd,stp,ftol,gtol,xtol,zero,stpmx,csave,isave,dsave)
 c======================= The end of lnsrlb =============================
 
       subroutine matupd(n, m, ws, wy, sy, ss, d, r, itail, 
-     +                  iupdat, col, head, theta, rr, dr, stp, dtd)
+     +                  iupdat, col, head, theta, rr, dr, stp, dtd,wgs,
+     +                  g)
  
       integer          n, m, itail, iupdat, col, head
       double precision theta, rr, dr, stp, dtd, d(n), r(n), 
-     +                 ws(n, m), wy(n, m), sy(m, m), ss(m, m)
+     +                 ws(n, m), wy(n, m), sy(m, m), ss(m, m),wgs(n,m),
+     +                 g(n)
 
 c     ************
 c
@@ -2641,7 +2646,8 @@ c     Update matrices WS and WY.
 
       call dcopy(n,d,1,ws(1,itail),1)
       call dcopy(n,r,1,wy(1,itail),1)
- 
+      call dcopy(n,g,1,wgs(1,itail),1)
+
 c     Set theta=yy/ys.
  
       theta = rr/dr
