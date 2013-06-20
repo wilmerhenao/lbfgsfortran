@@ -212,7 +212,7 @@
 !
       character(len=60)      :: task, csave
       logical                :: lsave(4)
-      integer                :: isave(44)
+      integer                :: isave(45)
       real(dp)               :: f
       real(dp)               :: dsave(29)
       integer,  allocatable  :: nbd(:), iwa(:)
