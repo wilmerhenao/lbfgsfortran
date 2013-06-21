@@ -24,53 +24,55 @@ LBFGSB  = lbfgsbnomessages.f
 LINPACK = linpack.f
 BLAS    = blas.f
 TIMER   = timer.f
+LAPACKFLAG = -llapack
+BLASFLAG = -lblas
 
 all :  lbfgsb_90_1 lbfgsb_90_2 lbfgsb_90_3 lbfgsb_90_4 lbfgsb_90_5 lbfgsb_90_6 lbfgsb_90_7 lbfgsb_90_8 lbfgsb_90_9 lbfgsb_90_10 lbfgsb_90_11 lbfgsb_90_12 lbfgsb_90_13 lbfgsb_90_14 lbfgsb_90_15 lbfgsb_90_16
 
 lbfgsb_90_1 : $(DRIVER1_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER)
-	$(FC) $(FFLAGS) $(DRIVER1_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER) -o rosenbrocknonsmooth
+	$(FC) $(FFLAGS) $(DRIVER1_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER) $(LAPACKFLAG) $(BLASFLAG) -o rosenbrocknonsmooth
 
 lbfgsb_90_2 : $(DRIVER2_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER)
-	$(FC) $(FFLAGS) $(DRIVER2_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER) -o yurirosen_ns1
+	$(FC) $(FFLAGS) $(DRIVER2_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER) $(LAPACKFLAG) $(BLASFLAG) -o yurirosen_ns1
 
 lbfgsb_90_3 : $(DRIVER3_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER)
-	$(FC) $(FFLAGS) $(DRIVER3_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER) -o yurirosen_ns2
+	$(FC) $(FFLAGS) $(DRIVER3_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER) $(LAPACKFLAG) $(BLASFLAG) -o yurirosen_ns2
 
 lbfgsb_90_4 : $(DRIVER4_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER)
-	$(FC) $(FFLAGS) $(DRIVER4_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER) -o driver3
+	$(FC) $(FFLAGS) $(DRIVER4_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER) $(LAPACKFLAG) $(BLASFLAG) -o driver3
 
 lbfgsb_90_5 : $(DRIVER5_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER)
-	$(FC) $(FFLAGS) $(DRIVER5_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER) -o chained_CB3v1
+	$(FC) $(FFLAGS) $(DRIVER5_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER) $(LAPACKFLAG) $(BLASFLAG) -o chained_CB3v1
 
 lbfgsb_90_6 : $(DRIVER6_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER)
-	$(FC) $(FFLAGS) $(DRIVER6_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER) -o chained_CB3v2
+	$(FC) $(FFLAGS) $(DRIVER6_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER) $(LAPACKFLAG) $(BLASFLAG) -o chained_CB3v2
 
 lbfgsb_90_7 : $(DRIVER7_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER)
-	$(FC) $(FFLAGS) $(DRIVER7_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER) -o chained_crescent1
+	$(FC) $(FFLAGS) $(DRIVER7_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER) $(LAPACKFLAG) $(BLASFLAG) -o chained_crescent1
 
 lbfgsb_90_8 : $(DRIVER8_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER)
-	$(FC) $(FFLAGS) $(DRIVER8_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER) -o chained_crescent2
+	$(FC) $(FFLAGS) $(DRIVER8_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER) $(LAPACKFLAG) $(BLASFLAG) -o chained_crescent2
 
 lbfgsb_90_9 : $(DRIVER9_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER)
-	$(FC) $(FFLAGS) $(DRIVER9_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER) -o chained_LQ
+	$(FC) $(FFLAGS) $(DRIVER9_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER) $(LAPACKFLAG) $(BLASFLAG) -o chained_LQ
 
 lbfgsb_90_10 : $(DRIVER10_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER)
-	$(FC) $(FFLAGS) $(DRIVER10_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER) -o chained_mifflin2
+	$(FC) $(FFLAGS) $(DRIVER10_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER) $(LAPACKFLAG) $(BLASFLAG) -o chained_mifflin2
 
 lbfgsb_90_11 : $(DRIVER11_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER)
-	$(FC) $(FFLAGS) $(DRIVER11_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER) -o gen_brownfunc2
+	$(FC) $(FFLAGS) $(DRIVER11_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER) $(LAPACKFLAG) $(BLASFLAG) -o gen_brownfunc2
 
 lbfgsb_90_12 : $(DRIVER12_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER)
-	$(FC) $(FFLAGS) $(DRIVER12_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER) -o gen_maxhilb
+	$(FC) $(FFLAGS) $(DRIVER12_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER) $(LAPACKFLAG) $(BLASFLAG) -o gen_maxhilb
 
 lbfgsb_90_13 : $(DRIVER13_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER)
-	$(FC) $(FFLAGS) $(DRIVER13_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER) -o gen_maxq
+	$(FC) $(FFLAGS) $(DRIVER13_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER) $(LAPACKFLAG) $(BLASFLAG) -o gen_maxq
 
 lbfgsb_90_14 : $(DRIVER14_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER)
-	$(FC) $(FFLAGS) $(DRIVER14_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER) -o nactfaces
+	$(FC) $(FFLAGS) $(DRIVER14_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER) $(LAPACKFLAG) $(BLASFLAG) -o nactfaces
 
 lbfgsb_90_15 : $(DRIVER15_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER)
-	$(FC) $(FFLAGS) $(DRIVER15_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER) -o yurirosenp
+	$(FC) $(FFLAGS) $(DRIVER15_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER) $(LAPACKFLAG) $(BLASFLAG) -o yurirosenp
 
 lbfgsb_90_16 : $(DRIVER16_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER)
-	$(FC) $(FFLAGS) $(DRIVER16_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER) -o rosenbrockp
+	$(FC) $(FFLAGS) $(DRIVER16_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER) $(LAPACKFLAG) $(BLASFLAG) -o rosenbrockp

@@ -2616,7 +2616,7 @@ c======================= The end of lnsrlb =============================
       integer          n, m, itail, iupdat, col, head
       double precision theta, rr, dr, stp, dtd, d(n), r(n), 
      +                 ws(n, m), wy(n, m), sy(m, m), ss(m, m),wgs(n,m),
-     +                 g(n), wxs(n), x(n)
+     +                 g(n), wxs(n, m), x(n)
 
 c     ************
 c
