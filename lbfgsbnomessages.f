@@ -25,11 +25,11 @@ c     of routine dpmeps to estimate machine precision.
 c
 c     The total work space **wa** required by the new version is 
 c 
-c                  3*m*n + 11m*m + 5*n + 8*m 
+c                  4*m*n + 11m*m + 5*n + 8*m 
 c 
 c     the old version required 
 c 
-c                  3*m*n + 12m*m + 4*n + 12*m 
+c                  4*m*n + 12m*m + 4*n + 12*m 
 c 
 c 
 c            J. Nocedal  Department of Electrical Engineering and
@@ -54,7 +54,7 @@ c=============================================================================
       double precision f, factr, pgtol, x(n), l(n), u(n), g(n),
 c
 c-jlm-jn
-     +                 wa(3*m*n + 5*n + 11*m*m + 8*m), dsave(29)
+     +                 wa(4*m*n + 5*n + 11*m*m + 8*m), dsave(29)
  
 c     ************
 c
