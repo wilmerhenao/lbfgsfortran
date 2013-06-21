@@ -65,25 +65,25 @@ program driver
   !     We specify the dimension n of the sample problem and the number
   !        m of limited memory corrections stored. 
 
-  integer,  parameter    :: n = 1000, m = 10, iprint = -1
+  integer,  parameter    :: n = 3, m = 10, iprint = -1
   integer,  parameter    :: dp = kind(1.0d0)
   real(dp), parameter    :: factr  = 0.0d0, pgtol  = 0.0d0, &
        tlimit = 10.0d0
-  !
+  
   character(len=60)      :: task, csave
   logical                :: lsave(4)
-  integer                :: isave(44)
+  integer                :: isave(46)
   real(dp)               :: f           
   real(dp)               :: dsave(29)
   integer,  allocatable  :: nbd(:), iwa(:)
   real(dp), allocatable  :: x(:), l(:), u(:), g(:), wa(:)
-  !
+  
   real(dp)               :: t1, t2, time1, time2
   integer                :: i, j
 
   allocate ( nbd(n), x(n), l(n), u(n), g(n) )
   allocate ( iwa(3*n) )
-  allocate ( wa(2*m*n + 5*n + 11*m*m + 8*m) )
+  allocate ( wa(4*m*n + 5*n + 11*m*m + 8*m) )
 
   !     This time-controlled driver shows that it is possible to terminate
   !     a run by elapsed CPU time, and yet be able to print all desired

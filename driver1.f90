@@ -212,7 +212,7 @@
 !
       character(len=60)      :: task, csave
       logical                :: lsave(4)
-      integer                :: isave(44)
+      integer                :: isave(46)
       real(dp)               :: f
       real(dp)               :: dsave(29)
       integer,  allocatable  :: nbd(:), iwa(:)
@@ -227,7 +227,7 @@
 
       allocate ( nbd(n), x(n), l(n), u(n), g(n) )
       allocate ( iwa(3*n) )
-      allocate ( wa(2*m*n + 5*n + 11*m*m + 8*m) )
+      allocate ( wa(4*m*n + 5*n + 11*m*m + 8*m) )
 ! 
       do 10 i=1, n, 2
          nbd(i) = 2

@@ -787,7 +787,7 @@ c     Generate the search direction d:=z-x.
       call lnsrlb(n,l,u,nbd,x,f,fold,gd,gdold,g,d,r,t,z,stp,dnorm,
      +            dtd,xstep,stpmx,iter,ifun,iback,nfgv,info,task,
      +            boxed,cnstnd,csave,isave(22),dsave(17))
-      if (info .ne. 0 .or. iback .ge. 20) then
+      if (info .ne. 0 .or. iback .ge. 50000) then
 c          restore the previous iterate.
          call dcopy(n,t,1,x,1)
          call dcopy(n,r,1,g,1)
@@ -852,6 +852,13 @@ c                                terminate the algorithm.
       if ((fold - f) .le. tol*ddum) then
 c                                        terminate the algorithm.
          task = 'CONVERGENCE: REL_REDUCTION_OF_F_<=_FACTR*EPSMCH'
+c         write (6, *) task
+c         write (*,'(A, F8.6)') 'tol is = ', tol
+c         write (*,'(A, F8.6)') 'ddum is = ', ddum
+c         write (6,*) 'Final X='
+c         write (6,'((1x,1p, 6(1x,d11.4)))') (x(i),i = 1,n)
+c         write (6,*) 'Final derivative vector='
+c         write (6,'((1x,1p, 6(1x,d11.4)))') (g(i),i = 1,n)
          if (iback .ge. 10) info = -5
 c           i.e., to issue a warning if iback>10 in the line search.
          goto 999
@@ -2551,6 +2558,8 @@ c     Determine the maximum step length.
 c                               the directional derivative >=0.
 c                               Line search is impossible.
             write(6,*)' ascent direction in projection gd = ', gd
+            write (6,*) 'Final X='
+            write (6,'((1x,1p, 6(1x,d11.4)))') (x(i),i = 1,n)
             info = -4
             return
          endif
@@ -3199,14 +3208,14 @@ c     Compute wv = W'Zd.
             k = ind(j)
             temp1 = temp1 + wy(k,pointr)*d(j)
             temp2 = temp2 + ws(k,pointr)*d(j)
-  10     continue
+ 10      continue
          wv(i) = temp1
          wv(col + i) = theta*temp2
          pointr = mod(pointr,m) + 1
-  20  continue
- 
+ 20   continue
+      
 c     Compute wv:=K^(-1)wv.
-
+      
       m2 = 2*m
       col2 = 2*col
       call dtrsl(wn,m2,col2,wv,11,info)
@@ -4171,7 +4180,7 @@ c     Restore local variables.
          width1 = dsave(13) 
 
       endif
-
+      ftest = finit + stp * gtest 
 c     Test for warnings.
 
       if (brackt .and. (stp .le. stmin .or. stp .ge. stmax))
@@ -4187,8 +4196,8 @@ c     Test for convergence.
 c     Change abs(g) to -g 
 c     Note that -ginit is always positive
 c     if (f .le. ftest .and. abs(g) .le. gtol*(-ginit)) 
-      if (f .le. ftest .and. -g .le. gtol*(-ginit)) 
-     +   task = 'CONVERGENCE'
+      if ((f .le. ftest) .and. (-g .le. gtol*(-ginit))) 
+     +     task = 'CONVERGENCE'
 
 c     Test for termination.
 
@@ -4197,7 +4206,7 @@ c     Test for termination.
 c     Run the procedure This part is similar to dcstep
 
       call linesearchstep(stx,fx,gx,sty,fy,gy,stp,f,g,
-     +     brackt,stmin,stmax,finit,ginit)
+     +     brackt,stmin,stmax,finit,ginit,ftest,ftol,gtol)
 
 c     Set the minimum and maximum steps allowed for stp.
 
@@ -4216,9 +4225,6 @@ c     Force the step to be within the bounds stpmax and stpmin.
 
 c     If further progress is not possible, let stp be the best
 c     point obtained during the search.
-
-      if (brackt .and. (stp .le. stmin .or. stp .ge. stmax)
-     +   .or. (brackt .and. stmax-stmin .le. xtol*stmax)) stp = stx
 
 c     Obtain another function and derivative.
 
@@ -4253,10 +4259,10 @@ c     Save local variables.
 c====================== The end of lineww ==============================
 
       subroutine linesearchstep(stx,fx,dx,sty,fy,dy,stp,fp,dp,brackt,
-     +                  stpmin,stpmax,finit,ginit)
+     +                  stpmin,stpmax,finit,ginit,ftest,ftol,gtol)
       logical brackt
       double precision stx,fx,dx,sty,fy,dy,stp,fp,dp,stpmin,stpmax,finit
-      double precision ginit
+      double precision ginit,ftest,ftol,gtol
 
 c     **********
 c
@@ -4353,26 +4359,24 @@ c     **********
       double precision zero,p66,two,three
       parameter(zero=0.0d0,p66=0.66d0,two=2.0d0,three=3.0d0)
       
-      double precision gamma,p,q,r,s,sgnd,stpc,stpf,stpq,theta
+      double precision gamma,p,q,r,s,stpc,stpf
       
-      sgnd = dp*(dx/abs(dx))
-
 c     Check first condition if first condition is violated.  Gone too far
-c     is dx really the derivative that I need?
-      if (fp .ge. finit + ftol * ginit * stp * dp) then 
+      if (fp .ge. ftest) then 
 c     stpmax = stp
          sty = stp
          fy = fp
          dy = dp
       else
 c     if second condition is violated not gone far enough
-         if (-gp * dp .le. gtol*(ginit) * dp) then
+         if (-dp .ge. gtol*(-ginit)) then
 c     stpmin = stp
             stx = stp
             fx = fp
             dx = dp
          else
-            stpf = stpf
+            print *, 'You shouldnt ever have to enter here'
+c            task = 'ERROR:  USER SHOULDNT ENTER IN THIS ELSE STATEMENT'
 c     Question:  Why expand?
          endif         
       endif   
@@ -4380,11 +4384,11 @@ c     Question:  Why expand?
       if ((min(stx,sty) .le. stp) .and. stp .le. max(stx,sty)) then
          brackt = .true.
       endif
-
+      
 c     Compute the new step.
-
+      
       stp = stpf
-
+      
       return
       end
       
