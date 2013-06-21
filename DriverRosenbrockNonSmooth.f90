@@ -69,7 +69,7 @@ program driver
   integer,  parameter    :: dp = kind(1.0d0)
   real(dp), parameter    :: factr  = 0.0d0, pgtol  = 0.0d0, &
        tlimit = 10.0d0
-  !
+  
   character(len=60)      :: task, csave
   logical                :: lsave(4)
   integer                :: isave(46)
@@ -77,7 +77,7 @@ program driver
   real(dp)               :: dsave(29)
   integer,  allocatable  :: nbd(:), iwa(:)
   real(dp), allocatable  :: x(:), l(:), u(:), g(:), wa(:)
-  !
+  
   real(dp)               :: t1, t2, time1, time2
   integer                :: i, j
 
