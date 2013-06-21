@@ -70,7 +70,7 @@ program driver
   !
   character(len=60)      :: task, csave
   logical                :: lsave(4)
-  integer                :: isave(45)
+  integer                :: isave(46)
   real(dp)               :: f, r
   real(dp)               :: dsave(29)
   integer,  allocatable  :: nbd(:), iwa(:)
@@ -93,7 +93,7 @@ program driver
 
   allocate ( nbd(n), x(n), l(n), u(n), g(n) )
   allocate ( iwa(3*n) )
-  allocate ( wa(3*m*n + 5*n + 11*m*m + 8*m) )
+  allocate ( wa(4*m*n + 5*n + 11*m*m + 8*m) )
   
   !     This time-controlled driver shows that it is possible to terminate
   !     a run by elapsed CPU time, and yet be able to print all desired

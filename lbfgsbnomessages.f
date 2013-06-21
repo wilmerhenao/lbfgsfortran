@@ -257,6 +257,7 @@ c-jlm-jn
          isave(15) = isave(14) + n          ! wxp     n
          isave(16) = isave(15) + n          ! wa      8*m
          isave(45) = isave(16) + n          ! lwgs    m*n
+         isave(46) = isave(45) + n          ! Lwxs    m*n
       endif
       lws  = isave(4)
       lwy  = isave(5)
@@ -272,13 +273,14 @@ c-jlm-jn
       lxp  = isave(15)
       lwa  = isave(16)
       lwgs = isave(45)
+      lwxs = isave(46)
 
       call mainlb(n,m,x,l,u,nbd,f,g,factr,pgtol,
      +  wa(lws),wa(lwy),wa(lsy),wa(lss), wa(lwt),
      +  wa(lwn),wa(lsnd),wa(lz),wa(lr),wa(ld),wa(lt),wa(lxp),
      +  wa(lwa),
      +  iwa(1),iwa(n+1),iwa(2*n+1),task,iprint, 
-     +  csave,lsave,isave(22),dsave,wa(lwgs))
+     +  csave,lsave,isave(22),dsave,wa(lwgs),wa(lwxs))
 
       return
 
@@ -289,7 +291,7 @@ c======================= The end of setulb =============================
       subroutine mainlb(n, m, x, l, u, nbd, f, g, factr, pgtol, ws, wy,
      +                  sy, ss, wt, wn, snd, z, r, d, t, xp, wa, 
      +                  index, iwhere, indx2, task,
-     +                  iprint, csave, lsave, isave, dsave,wgs)
+     +                  iprint, csave, lsave, isave, dsave,wgs,wxs)
       implicit none
       character*60     task, csave
       logical          lsave(4)
@@ -302,7 +304,7 @@ c-jlm-jn
      +                 wa(8*m), 
      +                 ws(n, m), wy(n, m), sy(m, m), ss(m, m), 
      +                 wt(m, m), wn(2*m, 2*m), snd(2*m, 2*m), dsave(29),
-     +                 wgs(n, m)
+     +                 wgs(n, m), wxs(n, m)
 
 c     ************
 c
@@ -902,7 +904,7 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c     Update matrices WS and WY and form the middle matrix in B.
 
       call matupd(n,m,ws,wy,sy,ss,d,r,itail,
-     +            iupdat,col,head,theta,rr,dr,stp,dtd,wgs,g)
+     +            iupdat,col,head,theta,rr,dr,stp,dtd,wgs,g,wxs,x)
 
 c     Form the upper half of the pds T = theta*SS + L*D^(-1)*L';
 c        Store T in the upper triangular of the array wt;
@@ -2596,12 +2598,12 @@ c======================= The end of lnsrlb =============================
 
       subroutine matupd(n, m, ws, wy, sy, ss, d, r, itail, 
      +                  iupdat, col, head, theta, rr, dr, stp, dtd,wgs,
-     +                  g)
+     +                  g, wxs, x)
  
       integer          n, m, itail, iupdat, col, head
       double precision theta, rr, dr, stp, dtd, d(n), r(n), 
      +                 ws(n, m), wy(n, m), sy(m, m), ss(m, m),wgs(n,m),
-     +                 g(n)
+     +                 g(n), wxs(n), x(n)
 
 c     ************
 c
@@ -2647,7 +2649,7 @@ c     Update matrices WS and WY.
       call dcopy(n,d,1,ws(1,itail),1)
       call dcopy(n,r,1,wy(1,itail),1)
       call dcopy(n,g,1,wgs(1,itail),1)
-
+      call dcopy(n,x,1,wxs(1,itail),1)
 c     Set theta=yy/ys.
  
       theta = rr/dr
@@ -4400,37 +4402,62 @@ c     Compute the new step.
       
 c====================== The end of linesearchstep ==============================
 
-      subroutine qpprepare(n, m, wgs, head, col)
-      integer          n, head, col, i, iptr
-      double precision wgs(n, m) 
+      subroutine qpprepare(n, m, wgs, wxs, head, col, x0)
+      integer          n, m, head, col, i, iptr
+      double precision wgs(n, m), wxs(n, m), x0(n)
+      double precision, dimension(n) :: distance
+      double precision :: d, dnorm, taux, taud
+      double precision, dimension(:,:), allocatable :: G
 
 c     **********
 c
 c     Subroutine qprepare
 c     this subroutine prepares matrix G out of matrix wsg and calculates the 
 c     qpspecial minimizer point
+
+
       double precision, dimension(n, m) :: G
       iptr = head
-      littleindex = 1
+      littleindex = 0
+
+      do 6233 j = 1, upcl
+         do 6235 i = 1, n
+            distance(i) = wxs(i, iptr) - x0(i)
+ 6235    continue
+         dtd = ddot(n, distance, 1, distance, 1)
+         dnorm = sqrt(dtd)
+         if (dnorm .lt. taux) then
+            littleindex = littleindex + 1
+         endif
+ 6233 continue
+
+      allocate(g(n,littleindex))
+      littleindex = 0
 
       do 5233 j = 1, upcl
          do 5235 i = 1, n
-            x(i) = pstion(i, iptr)
+            distance(i) = wxs(i, iptr) - x0(i)
  5235    continue
-         do 5234 i = 1, n
-            G(i, littleindex) = wgs(i, iptr)
- 5234    continue
+         dtd = ddot(n, distance, 1, distance, 1)
+         dnorm = sqrt(dtd)
+         if(dnorm .lt. taux) then
+            littleindex = littleindex + 1
+            do 5234 i = 1, n
+               G(i, littleindex) = wgs(i, iptr)
+ 5234       continue
+         endif
       iptr = mod(iptr,m) + 1
  5233 continue
-
+      qpspecial(n, littleindex, g, 100, x)
       return
       end
       
 c====================== The end of qprepare  ====================================
-      subroutine qpspecial(m, n, G, maxit)
+      subroutine qpspecial(m, n, G, maxit, x)
       implicit none
       integer  ::          m, n, maxit
       double precision, dimension(m, n) :: G
+      double precision, dimension(n)    :: x
       
 c     This is a program that finds the solution to the QP problem
 c     []
@@ -4445,7 +4472,7 @@ c
 c     The problem corresponds to finding the smallest vector
 c     (2-norm) in the convex hull of the columns of G
 c     
-c Inputs:
+c     Inputs:
 c     G            -- (M x n double) matrix G, see problem above
 c     varargin{1}  -- (int) maximum number of iterates allowed
 c     If not present, maxit = 100 is used
@@ -4467,7 +4494,7 @@ c     info(2) = #iterations used
       
 c     double precision, dimension(n)    :: qpspecial
       
-c  This is a program that finds the solution to the QP problem
+c     This is a program that finds the solution to the QP problem
 c     []
 c     [x,d,q,info] = qpspecial(G,varargin)
 c     
@@ -4501,177 +4528,177 @@ c     2 = something went wrong
 c     info(2) = #iterations used
       
       integer          :: echo, info, k, i, j
-double precision :: ptemp, eta, delta, mu0, tolmu, tolrs, kmu, nQ, krs, ap, ad, Mm, r2, rs, mu, sig, dummy
-double precision :: r5, r6, dy, muaff, y
-double precision, dimension(n)    :: x, z, zdx, KT, r1, r3, r4, r7, e, work, dx, dz, p
-double precision, dimension(m)    :: d
-double precision, dimension(n, n) :: Q, QD, C, invTrC, invC
+      double precision :: ptemp, eta, delta, mu0, tolmu, tolrs, kmu, nQ, krs, ap, ad, Mm, r2, rs, mu, sig, dummy
+      double precision :: r5, r6, dy, muaff, y
+      double precision, dimension(n)    :: z, zdx, KT, r1, r3, r4, r7, e, work, dx, dz, p
+      double precision, dimension(m)    :: d
+      double precision, dimension(n, n) :: Q, QD, C, invTrC, invC
       
-integer, dimension(n) :: ipiv
-character        :: uplo
-double precision, external :: DPOTRF 
-external DGETRF, DGETRI
-double precision, external :: norminf
-uplo = 'U'
-c External procedures defined in lapack
-echo = 0
-c Check the dimensions
-if (m*n .le. 0) then
-   write(*,*) 'qpspecial is empty'
-endif
+      integer, dimension(n) :: ipiv
+      character        :: uplo
+      double precision, external :: DPOTRF 
+      external DGETRF, DGETRI
+      double precision, external :: norminf
+      uplo = 'U'
+c     External procedures defined in lapack
+      echo = 0
+c     Check the dimensions
+      if (m*n .le. 0) then
+         write(*,*) 'qpspecial is empty'
+      endif
 
-c Create a vector of ones and use it as a starting point
-
-do 1000 i = 1, n
-   e(i) = 1d0
+c     Create a vector of ones and use it as a starting point
+      
+      do 1000 i = 1, n
+         e(i) = 1d0
 1000 continue
    
-x = e
+      x = e
 
-c Hessian in QP
-Q = matmul(transpose(G), G)
+c     Hessian in QP
+      Q = matmul(transpose(G), G)
+      
+      z = x
+      y = 0d0
+      eta = 0.9995d0 c step size dampening
+      delta = 3d0    c for the sigma heuristic
+      mu0 = dot_product(x, z) / n
+c     constants for stopping, residuals, init steps.
+      tolmu = 1d-5
+      tolrs = 1d-5
+      kmu = tolmu * mu0
+      nQ = norminf(n, Q) + 2d0
+      krs = tolrs * nQ
+      ap = 0d0
+      ad = 0d0
 
-z = x
-y = 0d0
-eta = 0.9995d0 c step size dampening
-delta = 3d0    c for the sigma heuristic
-mu0 = dot_product(x, z) / n
-c constants for stopping, residuals, init steps.
-tolmu = 1d-5
-tolrs = 1d-5
-kmu = tolmu * mu0
-nQ = norminf(n, Q) + 2d0
-krs = tolrs * nQ
-ap = 0d0
-ad = 0d0
-
-do 2122 k = 1, maxit
-   c residuals
-   r1 = -matmul(Q,x) + e*y + z
-   r2 = -1d0 + SUM(x)
-   r3 = -x*z   c slacks
-   rs = MAX(sum(abs(r1)), abs(r2))
-   mu = -sum(r3)/n c current mu
-   if(mu .lt. kmu) then
-      if(rs .lt. krs) then
-         write(*,*) 'converged and jumping out'
-         goto 999
-      end if
-   end if
-   zdx = z / x
-   QD = Q
-   do 3000 i = 1, n
-      QD(i,i) = QD(i,i) + zdx(i)
+      do 2122 k = 1, maxit
+c     residuals
+         r1 = -matmul(Q,x) + e*y + z
+         r2 = -1d0 + SUM(x)
+         r3 = -x*z   c slacks
+         rs = MAX(sum(abs(r1)), abs(r2))
+         mu = -sum(r3)/n c current mu
+         if(mu .lt. kmu) then
+            if(rs .lt. krs) then
+               write(*,*) 'converged and jumping out'
+               goto 999
+            end if
+         end if
+         zdx = z / x
+         QD = Q
+         do 3000 i = 1, n
+            QD(i,i) = QD(i,i) + zdx(i)
 3000  continue
-   dummy = DPOTRF(uplo, n, QD, n, info)
-   if(0 /= info) then
-      stop 'Matrix is not positive definite'
-   endif
-
-   c clean the matrix lower part   
-   do 4000 i= 1, n
-      do 4100 j = (i+1), n
-         QD(j,i) = 0d0
+      dummy = DPOTRF(uplo, n, QD, n, info)
+      if(0 /= info) then
+         stop 'Matrix is not positive definite'
+      endif
+      
+c clean the matrix lower part   
+      do 4000 i= 1, n
+         do 4100 j = (i+1), n
+            QD(j,i) = 0d0
 4100  continue
 4000  continue
-
-   C = QD
-   invTrC = transpose(C)
-   invC = C
-   
-   call DGETRF(n, n, invTrC, n, ipiv, info)
-   if (0 /= info) then
-      stop 'Matrix is numerically singular!'
-   endif
- 
-   
-   call DGETRI(n, invTrC, n, ipiv, work, n, info)
-   if(0 /= info) then
-      stop 'Matrix inversion failed!'
-   endif
-   
-   call DGETRF(n, n, invC, n, ipiv, info)
-   if (0 /= info) then
-      stop 'Matrix is numerically singular!'
-   endif
-
-   call DGETRI(n, invC, n, ipiv, work, n, info)
-   if(0 /= info) then
-      stop 'Matrix inversion failed!'
-   endif
-   KT = matmul(invTrC, e)
-   
-   Mm = dot_product(KT, KT)
-   c compute approx. tangent direction using factorization from above
-   r4 = r1 + r3 / x
-   r5 = dot_product(KT, matmul(invTrC, r4))
-   r6 = r2 + r5
-   dy = -r6 / Mm
-   r7 = r4 + e * dy
-   dx = matmul(invC, matmul(invTrC, r7))
-   dz = (r3 - z * dx) / x
-   c determine maximal step possible in the approx. tangent directions
-   p = -x / dx
-   ptemp = 1d0
-   do 2142 i = 1, n
-      if (p(i) .gt. 0d0) then 
-         ptemp = min(p(i), ptemp)
+      
+      C = QD
+      invTrC = transpose(C)
+      invC = C
+      
+      call DGETRF(n, n, invTrC, n, ipiv, info)
+      if (0 /= info) then
+         stop 'Matrix is numerically singular!'
       endif
+      
+      
+      call DGETRI(n, invTrC, n, ipiv, work, n, info)
+      if(0 /= info) then
+         stop 'Matrix inversion failed!'
+      endif
+      
+      call DGETRF(n, n, invC, n, ipiv, info)
+      if (0 /= info) then
+         stop 'Matrix is numerically singular!'
+      endif
+      
+      call DGETRI(n, invC, n, ipiv, work, n, info)
+      if(0 /= info) then
+      stop 'Matrix inversion failed!'
+      endif
+      KT = matmul(invTrC, e)
+      
+      Mm = dot_product(KT, KT)
+c compute approx. tangent direction using factorization from above
+      r4 = r1 + r3 / x
+      r5 = dot_product(KT, matmul(invTrC, r4))
+      r6 = r2 + r5
+      dy = -r6 / Mm
+      r7 = r4 + e * dy
+      dx = matmul(invC, matmul(invTrC, r7))
+      dz = (r3 - z * dx) / x
+      c determine maximal step possible in the approx. tangent directions
+      p = -x / dx
+      ptemp = 1d0
+      do 2142 i = 1, n
+         if (p(i) .gt. 0d0) then 
+            ptemp = min(p(i), ptemp)
+         endif
 2142  continue
-   c and here the dual step size using diff. steps in primal and dual improves pfmnce a bit
-   ap = min(ptemp, 1d0)
-   ptemp = 1d0
-   p = -z / dz
-do 2143 i = 1, n
-      if (p(i) .gt. 0d0) then 
-         ptemp = min(p(i), ptemp)
-      endif
+c and here the dual step size using diff. steps in primal and dual improves pfmnce a bit
+      ap = min(ptemp, 1d0)
+      ptemp = 1d0
+      p = -z / dz
+      do 2143 i = 1, n
+         if (p(i) .gt. 0d0) then 
+            ptemp = min(p(i), ptemp)
+         endif
 2143  continue
-   ad = min(ptemp, 1d0)
-   muaff = dot_product((x + ap * dx), (z + ad * dz)) / n
-   sig = (muaff/mu)**delta
-
-   r3 = r3 + sig * mu
-   r3 = r3 - dx * dz
-   r4 = r1 + r3 / x
-   r5 = dot_product(KT, matmul(invTrC, r4))
-   r6 = r2 + r5
-   dy = -r6/Mm
-   r7 = r4 + e * dy
-   dx = matmul(invC, matmul(invTrC, r7))
-   dz = (r3-z*dx)/x
-
-   p = -x/dx
-   ptemp = 1d0
-   do 2144 i = 1, n
-      if (p(i) .gt. 0d0) then 
-         ptemp = min(p(i), ptemp)
-      endif
+      ad = min(ptemp, 1d0)
+      muaff = dot_product((x + ap * dx), (z + ad * dz)) / n
+      sig = (muaff/mu)**delta
+      
+      r3 = r3 + sig * mu
+      r3 = r3 - dx * dz
+      r4 = r1 + r3 / x
+      r5 = dot_product(KT, matmul(invTrC, r4))
+      r6 = r2 + r5
+      dy = -r6/Mm
+      r7 = r4 + e * dy
+      dx = matmul(invC, matmul(invTrC, r7))
+      dz = (r3-z*dx)/x
+      
+      p = -x/dx
+      ptemp = 1d0
+      do 2144 i = 1, n
+         if (p(i) .gt. 0d0) then 
+            ptemp = min(p(i), ptemp)
+         endif
 2144  continue
-   ap = min(ptemp, 1d0)
+      ap = min(ptemp, 1d0)
    
-   ptemp = 1d0
-   p = -z / dz
-   do 2145 i = 1, n
-      if (p(i) .gt. 0d0) then 
-         ptemp = min(p(i), ptemp)
-      endif
+      ptemp = 1d0
+      p = -z / dz
+      do 2145 i = 1, n
+         if (p(i) .gt. 0d0) then 
+            ptemp = min(p(i), ptemp)
+         endif
 2145  continue
-   ad = min(ptemp, 1d0)
-   c update variables,  primal, dual multipliers, dual slacks
-   x=x+eta*ap*dx
-   y=y+eta*ad*dy
-   z=z+eta*ad*dz
+      ad = min(ptemp, 1d0)
+c update variables,  primal, dual multipliers, dual slacks
+      x=x+eta*ap*dx
+      y=y+eta*ad*dy
+      z=z+eta*ad*dz
 2122 continue
 999 continue
-x = max(x, 0d0)
-x = x/sum(x)
-d = matmul(G, x)
-q = dot_product(d,d)
-write(*, *) x
-write(*,*) 'done'
-end 
-c ----------------------- end of qpspecial ---------------------------------
+      x = max(x, 0d0)
+      x = x/sum(x)
+      d = matmul(G, x)
+      q = dot_product(d,d)
+      write(*, *) x
+      write(*,*) 'done'
+      end 
+c     ======================= end of qpspecial =================================
 
 function norminf(n, G) result(normvalue)
 double precision G(n, n), normvalue, normvaluetemp
@@ -4686,4 +4713,4 @@ do 1100 i = 1, n
    normvalue = max(normvalue, normvaluetemp)
 1100  continue
 end function norminf
-c ----------------------- end of norminf ------------------------------------
+c ======================= end of norminf ====================================
