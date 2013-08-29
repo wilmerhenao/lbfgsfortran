@@ -4471,9 +4471,17 @@ c     Only do the analysis if there are more than two gradient vectors involved
          call qpspecial(n, littleindex, H, 100, x)
          
          dtd = ddot(n, x, 1, x, 1)
+         
+         write(*,*) 'n is:'
+         write(*,*) n
+         
          xnorm = sqrt(dtd)
          
+         write(*,*) 'norm of subgradient is:'
+         write(*,*) xnorm
+         
          if(xnorm .lt. taud) then
+            write(*,*)  'Zero is part of subgradient given taud'
             task = 'CONVERGENCE: ZERO IS PART OF SUBGRADIENT GIVEN TAUD'
             converged = .true.
          endif
@@ -4613,7 +4621,7 @@ c     residuals
          mu = -sum(r3)/n        ! current mu
          if(mu .lt. kmu) then
             if(rs .lt. krs) then
-               write(*,*) 'converged and jumping out'
+               write(*,*) 'converged & jumping out'
                goto 945
             end if
          end if
