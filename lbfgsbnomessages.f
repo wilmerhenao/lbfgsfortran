@@ -28,7 +28,7 @@ c
 c                  4*m*n + 11m*m + 5*n + 8*m 
 c 
 c     the old version required 
-c 
+c
 c                  4*m*n + 12m*m + 4*n + 12*m 
 c 
 c 
@@ -2572,8 +2572,8 @@ c     Determine the maximum step length.
       gd = ddot(n,g,1,d,1)
       if (ifun .eq. 0) then
          gdold=gd
-         if (gd .ge. zero) then
-c                               the directional derivative >=0.
+         if (gd .gt. zero) then
+c                               the directional derivative > 0.
 c                               Line search is impossible.
             write(6,*)' ascent direction in projection gd = ', gd
             write (6,*) 'Final X='
@@ -2584,8 +2584,13 @@ c                               Line search is impossible.
       endif
 
 c     call dcsrch(f,gd,stp,ftol,gtol,xtol,zero,stpmx,csave,isave,dsave)
-      call lineww(f,gd,stp,ftol,gtol,xtol,zero,stpmx,csave,isave,dsave)
-
+      if (gd .ne. 0) then
+       call lineww(f,gd,stp,ftol,gtol,xtol,zero,stpmx,csave,isave,dsave)
+      else
+c        review this
+         csave = 'CONVERGENCE'
+      endif
+      
       xstep = stp*dnorm
       if (csave(1:4) .ne. 'CONV' .and. csave(1:4) .ne. 'WARN') then
          task = 'FG_LNSRCH'
@@ -4468,17 +4473,20 @@ c     Only do the analysis if there are more than two gradient vectors involved
  5233    continue
          
          
-         call qpspecial(n, littleindex, H, 100, x)
+         call qpspecial(littleindex, n, H, 100, x)
          
          dtd = ddot(n, x, 1, x, 1)
          
-         write(*,*) 'n is:'
-         write(*,*) n
+c        write(*,*) 'n is:'
+c        write(*,*) n
+
+c        write(*,*) 'x is:'
+c        write(*,*) x
          
          xnorm = sqrt(dtd)
          
-         write(*,*) 'norm of subgradient is:'
-         write(*,*) xnorm
+c        write(*,*) 'norm of subgradient is:'
+c        write(*,*) xnorm
          
          if(xnorm .lt. taud) then
             write(*,*)  'Zero is part of subgradient given taud'
@@ -4594,7 +4602,7 @@ c     Create a vector of ones and use it as a starting point
  1093    continue
    
       x = e
-
+      write(*,*) x
 c     Hessian in QP
       Q = matmul(transpose(G), G)
       
