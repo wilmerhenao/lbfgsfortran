@@ -4488,7 +4488,8 @@ c        write(*,*) x
 c        write(*,*) 'norm of subgradient is:'
 c        write(*,*) xnorm
          
-         if(xnorm .lt. taud) then
+         !if(xnorm .lt. taud) then
+         if(.false.) then
             write(*,*)  'Zero is part of subgradient given taud'
             task = 'CONVERGENCE: ZERO IS PART OF SUBGRADIENT GIVEN TAUD'
             converged = .true.

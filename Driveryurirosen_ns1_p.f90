@@ -161,7 +161,8 @@ x(1) = -1d0
                  !        Before evaluating f and g we check the CPU time spent.
 
            call timer(time2)
-           if (time2-time1 .gt. tlimit) then
+           !  if (time2-time1 .gt. tlimit) then
+           if (.false.) then
               task='STOP: CPU EXCEEDING THE TIME LIMIT.'
 
               !          Note: Assigning task(1:4)='STOP' will terminate the run;
