@@ -25,22 +25,22 @@ c     of routine dpmeps to estimate machine precision.
 c
 c     The total work space **wa** required by the new version is 
 c 
-c                  4*m*n + 11m*m + 5*n + 8*m 
-c 
+c                  2*m*n + 11m*m + 5*n + 8*m 
+c
 c     the old version required 
 c
-c                  4*m*n + 12m*m + 4*n + 12*m 
-c 
-c 
+c                  2*m*n + 12m*m + 4*n + 12*m 
+c
+c
 c            J. Nocedal  Department of Electrical Engineering and
 c                        Computer Science.
 c                        Northwestern University. Evanston, IL. USA
-c 
-c 
+c
+c
 c           J.L Morales  Departamento de Matematicas, 
 c                        Instituto Tecnologico Autonomo de Mexico
 c                        Mexico D.F. Mexico.
-c 
+c
 c                        March  2011    
 c                                                 
 c============================================================================= 
@@ -50,11 +50,11 @@ c=============================================================================
       character*60     task, csave
       logical          lsave(4)
       integer          n, m, iprint, 
-     +                 nbd(n), iwa(3*n), isave(46)
+     +                 nbd(n), iwa(3*n), isave(44)
       double precision f, factr, pgtol, x(n), l(n), u(n), g(n),
 c
 c-jlm-jn
-     +                 wa(4*m*n + 5*n + 11*m*m + 8*m), dsave(29)
+     +                 wa(2*m*n + 5*n + 11*m*m + 8*m), dsave(29)
  
 c     ************
 c
@@ -256,8 +256,6 @@ c-jlm-jn
          isave(14) = isave(13) + n          ! wt      n
          isave(15) = isave(14) + n          ! wxp     n
          isave(16) = isave(15) + n          ! wa      8*m
-         isave(45) = isave(16) + n          ! lwgs    m*n
-         isave(46) = isave(45) + n          ! Lwxs    m*n
       endif
       lws  = isave(4)
       lwy  = isave(5)
@@ -272,15 +270,13 @@ c-jlm-jn
       lt   = isave(14)
       lxp  = isave(15)
       lwa  = isave(16)
-      lwgs = isave(45)
-      lwxs = isave(46)
 
       call mainlb(n,m,x,l,u,nbd,f,g,factr,pgtol,
      +  wa(lws),wa(lwy),wa(lsy),wa(lss), wa(lwt),
      +  wa(lwn),wa(lsnd),wa(lz),wa(lr),wa(ld),wa(lt),wa(lxp),
      +  wa(lwa),
      +  iwa(1),iwa(n+1),iwa(2*n+1),task,iprint, 
-     +  csave,lsave,isave(22),dsave,wa(lwgs),wa(lwxs))
+     +  csave,lsave,isave(22),dsave)
 
       return
 
@@ -291,7 +287,7 @@ c======================= The end of setulb =============================
       subroutine mainlb(n, m, x, l, u, nbd, f, g, factr, pgtol, ws, wy,
      +                  sy, ss, wt, wn, snd, z, r, d, t, xp, wa, 
      +                  index, iwhere, indx2, task,
-     +                  iprint, csave, lsave, isave, dsave,wgs,wxs)
+     +                  iprint, csave, lsave, isave, dsave)
       implicit none
       character*60     task, csave
       logical          lsave(4)
@@ -303,8 +299,7 @@ c-jlm-jn
      +                 xp(n), 
      +                 wa(8*m), 
      +                 ws(n, m), wy(n, m), sy(m, m), ss(m, m), 
-     +                 wt(m, m), wn(2*m, 2*m), snd(2*m, 2*m), dsave(29),
-     +                 wgs(n, m), wxs(n, m)
+     +                 wt(m, m), wn(2*m, 2*m), snd(2*m, 2*m), dsave(29)
 
 c     ************
 c
@@ -370,7 +365,7 @@ c
 c         where pg_i is the ith component of the projected gradient.
 c       On exit pgtol is unchanged.
 c
-c     ws, wy, sy, wgs and wt are double precision working arrays used to
+c     ws, wy, sy, and wt are double precision working arrays used to
 c       store the following information defining the limited memory
 c          BFGS matrix:
 c          ws, of dimension n x m, stores S, the matrix of s-vectors;
@@ -381,7 +376,7 @@ c          yy, of dimension m x m, stores Y'Y;
 c          wt, of dimension m x m, stores the Cholesky factorization
 c                                  of (theta*S'S+LD^(-1)L'); see eq.
 c                                  (2.26) in [3].
-c          wgs, of dimension n x m, stores WGS, the matrix of g-vectors
+c
 c     wn is a double precision working array of dimension 2m x 2m
 c       used to store the LEL^T factorization of the indefinite matrix
 c                 K = [-D -Y'ZZ'Y/theta     L_a'-R_z'  ]
@@ -486,12 +481,12 @@ c
 c
 c     ************
  
-      logical          prjctd,cnstnd,boxed,updatd,wrk, converg
+      logical          prjctd,cnstnd,boxed,updatd,wrk
       character*3      word
       integer          i,k,nintol,itfile,iback,nskip,
      +                 head,col,iter,itail,iupdat,
      +                 nseg,nfgv,info,ifun,
-     +                 iword,nfree,nact,ileave,nenter,upb
+     +                 iword,nfree,nact,ileave,nenter
       double precision theta,fold,ddot,dr,rr,tol,
      +                 xstep,sbgnrm,ddum,dnorm,dtd,epsmch,
      +                 cpu1,cpu2,cachyt,sbtime,lnscht,time1,time2,
@@ -653,11 +648,11 @@ c     Compute the infinity norm of the (-) projected gradient.
          write (6,1002) iter,f,sbgnrm
          write (itfile,1003) iter,nfgv,sbgnrm,f
       endif
-c      if (sbgnrm .le. pgtol) then
+      if (sbgnrm .le. pgtol) then
 c                                terminate the algorithm.
-c         task = 'CONVERGENCE: NORM_OF_PROJECTED_GRADIENT_<=_PGTOL'
-c         goto 999
-c      endif 
+         task = 'CONVERGENCE: NORM_OF_PROJECTED_GRADIENT_<=_PGTOL'
+         goto 999
+      endif 
  
 c ----------------- the beginning of the loop --------------------------
  
@@ -673,19 +668,6 @@ c                                            skip the search for GCP.
          goto 333
       endif
 
-c     check for convergence using the subgradient criteria
-      if(col .gt. 1) then
-         if (updatd) then
-            upb = col - 1
-         else 
-            upb = col
-         endif
-         converg = .false.
-         call qpprepare(n, m, wgs, wxs, head, col, x, task, upb,converg)
-         if(.true. .eqv. converg) then
-            goto 999
-         endif
-      endif
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
 c     Compute the Generalized Cauchy Point (GCP).
@@ -867,9 +849,9 @@ c                                terminate the algorithm.
       endif 
 
       ddum = max(abs(fold), abs(f), one)
-c      if ((fold - f) .le. tol*ddum) then
+      if ((fold - f) .le. tol*ddum) then
 c                                        terminate the algorithm.
-c         task = 'CONVERGENCE: REL_REDUCTION_OF_F_<=_FACTR*EPSMCH'
+         task = 'CONVERGENCE: REL_REDUCTION_OF_F_<=_FACTR*EPSMCH'
 c         write (6, *) task
 c         write (*,'(A, F8.6)') 'tol is = ', tol
 c         write (*,'(A, F8.6)') 'ddum is = ', ddum
@@ -877,10 +859,10 @@ c         write (6,*) 'Final X='
 c         write (6,'((1x,1p, 6(1x,d11.4)))') (x(i),i = 1,n)
 c         write (6,*) 'Final derivative vector='
 c         write (6,'((1x,1p, 6(1x,d11.4)))') (g(i),i = 1,n)
-c         if (iback .ge. 10) info = -5
+         if (iback .ge. 10) info = -5
 c           i.e., to issue a warning if iback>10 in the line search.
-c         goto 999
-c      endif 
+         goto 999
+      endif 
 
 c     Compute d=newx-oldx, r=newg-oldg, rr=y'y and dr=y's.
  
@@ -917,7 +899,7 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c     Update matrices WS and WY and form the middle matrix in B.
 
       call matupd(n,m,ws,wy,sy,ss,d,r,itail,
-     +            iupdat,col,head,theta,rr,dr,stp,dtd,wgs,g,wxs,x)
+     +            iupdat,col,head,theta,rr,dr,stp,dtd)
 
 c     Form the upper half of the pds T = theta*SS + L*D^(-1)*L';
 c        Store T in the upper triangular of the array wt;
@@ -2572,8 +2554,8 @@ c     Determine the maximum step length.
       gd = ddot(n,g,1,d,1)
       if (ifun .eq. 0) then
          gdold=gd
-         if (gd .gt. zero) then
-c                               the directional derivative > 0.
+         if (gd .ge. zero) then
+c                               the directional derivative >=0.
 c                               Line search is impossible.
             write(6,*)' ascent direction in projection gd = ', gd
             write (6,*) 'Final X='
@@ -2584,13 +2566,8 @@ c                               Line search is impossible.
       endif
 
 c     call dcsrch(f,gd,stp,ftol,gtol,xtol,zero,stpmx,csave,isave,dsave)
-      if (gd .ne. 0) then
-       call lineww(f,gd,stp,ftol,gtol,xtol,zero,stpmx,csave,isave,dsave)
-      else
-c        review this
-         csave = 'CONVERGENCE'
-      endif
-      
+      call lineww(f,gd,stp,ftol,gtol,xtol,zero,stpmx,csave,isave,dsave)
+
       xstep = stp*dnorm
       if (csave(1:4) .ne. 'CONV' .and. csave(1:4) .ne. 'WARN') then
          task = 'FG_LNSRCH'
@@ -2615,13 +2592,11 @@ c        review this
 c======================= The end of lnsrlb =============================
 
       subroutine matupd(n, m, ws, wy, sy, ss, d, r, itail, 
-     +                  iupdat, col, head, theta, rr, dr, stp, dtd,wgs,
-     +                  g, wxs, x)
+     +                  iupdat, col, head, theta, rr, dr, stp, dtd)
  
       integer          n, m, itail, iupdat, col, head
       double precision theta, rr, dr, stp, dtd, d(n), r(n), 
-     +                 ws(n, m), wy(n, m), sy(m, m), ss(m, m),wgs(n,m),
-     +                 g(n), wxs(n, m), x(n)
+     +                 ws(n, m), wy(n, m), sy(m, m), ss(m, m)
 
 c     ************
 c
@@ -2666,9 +2641,7 @@ c     Update matrices WS and WY.
 
       call dcopy(n,d,1,ws(1,itail),1)
       call dcopy(n,r,1,wy(1,itail),1)
-      call dcopy(n,g,1,wgs(1,itail),1)
-      call dcopy(n,x,1,wxs(1,itail),1)
-
+ 
 c     Set theta=yy/ys.
  
       theta = rr/dr
@@ -4420,347 +4393,3 @@ c     Compute the new step.
       end
       
 c====================== The end of linesearchstep ==============================
-
-      subroutine qpprepare(n, m, wgs, wxs, head, col, x0, task, upcl,
-     +                     converged)
-      logical          converged
-      character*(*)    task
-      integer          n, m, head, col, i, iptr, upcl
-      double precision wgs(n, m), wxs(n, m), x0(n)
-      double precision, dimension(n) :: distance, x
-      double precision :: d, dnorm, taux, taud, xnorm
-      double precision, dimension(:,:), allocatable :: H
-
-c     **********
-c
-c     Subroutine qprepare
-c     this subroutine prepares matrix G out of matrix wsg and calculates the 
-c     qpspecial minimizer point
-      iptr = head
-      littleindex = 0
-      taux = 1d-4
-      taud = 1d-4
-      
-      do 6233 j = 1, upcl
-         do 6235 i = 1, n
-            distance(i) = wxs(i, iptr) - x0(i)
- 6235    continue
-         dtd = ddot(n, distance, 1, distance, 1)
-         dnorm = sqrt(dtd)
-         if (dnorm .lt. taux) then
-            littleindex = littleindex + 1
-         endif
- 6233 continue
-
-c     Only do the analysis if there are more than two gradient vectors involved
-      if (littleindex .gt. 1) then
-         allocate(H(n,littleindex))
-         littleindex = 0
-         
-         do 5233 j = 1, upcl
-            do 5235 i = 1, n
-               distance(i) = wxs(i, iptr) - x0(i)
- 5235       continue
-            dtd = ddot(n, distance, 1, distance, 1)
-            dnorm = sqrt(dtd)
-            if(dnorm .lt. taux) then
-               littleindex = littleindex + 1
-               do 5234 i = 1, n
-                  H(i, littleindex) = wgs(i, iptr)
- 5234          continue
-            endif
-            iptr = mod(iptr,m) + 1
- 5233    continue
-         
-         
-         call qpspecial(littleindex, n, H, 100, x)
-         
-         dtd = ddot(n, x, 1, x, 1)
-         
-c        write(*,*) 'n is:'
-c        write(*,*) n
-
-c        write(*,*) 'x is:'
-c        write(*,*) x
-         
-         xnorm = sqrt(dtd)
-         
-c        write(*,*) 'norm of subgradient is:'
-c        write(*,*) xnorm
-         
-         !if(xnorm .lt. taud) then
-         if(.false.) then
-            write(*,*)  'Zero is part of subgradient given taud'
-            task = 'CONVERGENCE: ZERO IS PART OF SUBGRADIENT GIVEN TAUD'
-            converged = .true.
-         endif
-      endif
-
-      return
-      end
-      
-c====================== The end of qprepare  ====================================
-      subroutine qpspecial(m, n, G, maxit, x)
-      implicit none
-      integer  ::          m, n, maxit
-      double precision, dimension(m, n) :: G
-      double precision, dimension(n)    :: x
-      
-c     This is a program that finds the solution to the QP problem
-c     []
-c     [x,d,q,info] = qpspecial(G,varargin)
-c     
-c     Solves the QP
-c     
-c     min     q(x)  = || G*x ||_2^2 = x'*(G'*G)*x
-c     s.t.  sum(x)  = 1
-c     x  >= 0
-c     
-c     The problem corresponds to finding the smallest vector
-c     (2-norm) in the convex hull of the columns of G
-c     
-c     Inputs:
-c     G            -- (M x n double) matrix G, see problem above
-c     varargin{1}  -- (int) maximum number of iterates allowed
-c     If not present, maxit = 100 is used
-c     varargin{2}  -- (n x 1 double) vector x0 with initial (FEASIBLE) iterate.
-c     If not present, (or requirements on x0 not met) a
-c     useable default x0 will be used
-c     
-c     Outputs:
-c     x       -- Optimal point attaining optimal value
-c     d = G*x -- Smallest vector in the convex hull
-c     q       -- Optimal value found = d'*d
-c     info    -- Run data:
-c     info(1) =
-c     0 = everything went well, q is optimal
-c     1 = maxit reached and final x is feasible. so q
-c     might not be optimal, but it is better than q(x0)
-c     2 = something went wrong
-c     info(2) = #iterations used
-      
-c     double precision, dimension(n)    :: qpspecial
-      
-c     This is a program that finds the solution to the QP problem
-c     []
-c     [x,d,q,info] = qpspecial(G,varargin)
-c     
-c     Solves the QP
-c     
-c     min     q(x)  = || G*x ||_2^2 = x'*(G'*G)*x
-c     s.t.  sum(x)  = 1
-c     x  >= 0
-c     
-c     The problem corresponds to finding the smallest vector
-c     (2-norm) in the convex hull of the columns of G
-c
-c     Inputs:
-c     G            -- (M x n double) matrix G, see problem above
-c     varargin{1}  -- (int) maximum number of iterates allowed
-c     If not present, maxit = 100 is used
-c     varargin{2}  -- (n x 1 double) vector x0 with initial (FEASIBLE) iterate.
-c     If not present, (or requirements on x0 not met) a
-c     useable default x0 will be used
-c     
-c     Outputs:
-c     x       -- Optimal point attaining optimal value
-c     d = G*x -- Smallest vector in the convex hull
-c     q       -- Optimal value found = d'*d
-c     info    -- Run data:
-c     info(1) =
-c     0 = everything went well, q is optimal
-c     1 = maxit reached and final x is feasible. so q
-c     might not be optimal, but it is better than q(x0)
-c     2 = something went wrong
-c     info(2) = #iterations used
-      
-      integer          :: echo, info, k, i, j
-      double precision :: ptemp, eta, delta, mu0, tolmu, tolrs, kmu, nQ
-      double precision :: krs, ap, ad, Mm, r2, rs, mu, sig, dummy
-      double precision :: r5, r6, dy, muaff, y
-      double precision, dimension(n)    :: z, zdx, KT, r1, r3, r4, r7, e
-      double precision, dimension(n)    :: work, dx, dz, p
-      double precision, dimension(m)    :: d
-      double precision, dimension(n, n) :: Q, QD, C, invTrC, invC
-      
-      integer, dimension(n) :: ipiv
-      character        :: uplo
-      double precision, external :: DPOTRF 
-      external DGETRF, DGETRI
-      double precision, external :: norminf
-      uplo = 'U'
-c     External procedures defined in lapack
-      echo = 0
-c     Check the dimensions
-      if (m*n .le. 0) then
-         write(*,*) 'qpspecial is empty'
-      endif
-
-c     Create a vector of ones and use it as a starting point
-      
-      do 1093 i = 1, n
-         e(i) = 1d0
- 1093    continue
-   
-      x = e
-      write(*,*) x
-c     Hessian in QP
-      Q = matmul(transpose(G), G)
-      
-      z = x
-      y = 0d0
-      eta = 0.9995d0 ! step size dampening
-      delta = 3d0    ! for the sigma heuristic
-      mu0 = dot_product(x, z) / n
-c     constants for stopping, residuals, init steps.
-      tolmu = 1d-5
-      tolrs = 1d-5
-      kmu = tolmu * mu0
-      nQ = norminf(n, Q) + 2d0
-      krs = tolrs * nQ
-      ap = 0d0
-      ad = 0d0
-
-      do 2122 k = 1, maxit
-c     residuals
-         r1 = -matmul(Q,x) + e*y + z
-         r2 = -1d0 + SUM(x)
-         r3 = -x*z              ! slacks
-         rs = MAX(sum(abs(r1)), abs(r2))
-         mu = -sum(r3)/n        ! current mu
-         if(mu .lt. kmu) then
-            if(rs .lt. krs) then
-               write(*,*) 'converged & jumping out'
-               goto 945
-            end if
-         end if
-         zdx = z / x
-         QD = Q
-         do 3000 i = 1, n
-            QD(i,i) = QD(i,i) + zdx(i)
- 3000    continue
-         dummy = DPOTRF(uplo, n, QD, n, info)
-         if(0 /= info) then
-            stop 'Matrix is not positive definite'
-         endif
-         
-c     clean the matrix lower part   
-         do 4000 i= 1, n
-            do 4100 j = (i+1), n
-               QD(j,i) = 0d0
- 4100       continue
- 4000    continue
-         
-         C = QD
-         invTrC = transpose(C)
-         invC = C
-         
-         call DGETRF(n, n, invTrC, n, ipiv, info)
-         if (0 /= info) then
-            stop 'Matrix is numerically singular!'
-         endif
-         
-         
-         call DGETRI(n, invTrC, n, ipiv, work, n, info)
-         if(0 /= info) then
-            stop 'Matrix inversion failed!'
-         endif
-         
-         call DGETRF(n, n, invC, n, ipiv, info)
-         if (0 /= info) then
-            stop 'Matrix is numerically singular!'
-         endif
-         
-         call DGETRI(n, invC, n, ipiv, work, n, info)
-         if(0 /= info) then
-            stop 'Matrix inversion failed!'
-         endif
-         KT = matmul(invTrC, e)
-         
-         Mm = dot_product(KT, KT)
-c     compute approx. tangent direction using factorization from above
-         r4 = r1 + r3 / x
-         r5 = dot_product(KT, matmul(invTrC, r4))
-         r6 = r2 + r5
-         dy = -r6 / Mm
-         r7 = r4 + e * dy
-         dx = matmul(invC, matmul(invTrC, r7))
-         dz = (r3 - z * dx) / x
-c     determine maximal step possible in the approx. tangent directions
-         p = -x / dx
-         ptemp = 1d0
-         do 2142 i = 1, n
-            if (p(i) .gt. 0d0) then 
-               ptemp = min(p(i), ptemp)
-            endif
- 2142    continue
-c     and here the dual step size using diff. 
-c     steps in primal and dual improves pfmnce a bit
-         ap = min(ptemp, 1d0)
-         ptemp = 1d0
-         p = -z / dz
-         do 2143 i = 1, n
-            if (p(i) .gt. 0d0) then 
-               ptemp = min(p(i), ptemp)
-            endif
- 2143    continue
-         ad = min(ptemp, 1d0)
-         muaff = dot_product((x + ap * dx), (z + ad * dz)) / n
-         sig = (muaff/mu)**delta
-         
-         r3 = r3 + sig * mu
-         r3 = r3 - dx * dz
-         r4 = r1 + r3 / x
-         r5 = dot_product(KT, matmul(invTrC, r4))
-         r6 = r2 + r5
-         dy = -r6/Mm
-         r7 = r4 + e * dy
-         dx = matmul(invC, matmul(invTrC, r7))
-         dz = (r3-z*dx)/x
-         
-         p = -x/dx
-         ptemp = 1d0
-         do 2144 i = 1, n
-            if (p(i) .gt. 0d0) then 
-               ptemp = min(p(i), ptemp)
-            endif
- 2144    continue
-         ap = min(ptemp, 1d0)
-         
-         ptemp = 1d0
-         p = -z / dz
-         do 2145 i = 1, n
-            if (p(i) .gt. 0d0) then 
-               ptemp = min(p(i), ptemp)
-            endif
- 2145    continue
-         ad = min(ptemp, 1d0)
-c     update variables,  primal, dual multipliers, dual slacks
-         x=x+eta*ap*dx
-         y=y+eta*ad*dy
-         z=z+eta*ad*dz
- 2122 continue
- 945  continue
-      x = max(x, 0d0)
-      x = x/sum(x)
-      d = matmul(G, x)
-      q = dot_product(d,d)
-      write(*, *) x
-      write(*,*)  'done'
-      end 
-c     ======================= end of qpspecial =================================
-
-      function norminf(n, G) result(normvalue)
-      double precision G(n, n), normvalue, normvaluetemp
-      integer :: n
-      normvalue = 0d0
-
-      do 1100 i = 1, n
-         normvaluetemp = 0d0
-         do 1200 j = 1, n
-            normvaluetemp = normvaluetemp + abs(G(i, j))
- 1200    continue
-         normvalue = max(normvalue, normvaluetemp)
- 1100 continue
-      end function norminf
-c     ======================= end of norminf ====================================

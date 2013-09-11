@@ -111,16 +111,16 @@ program driver
   
   do 10 i=1, n,2
      nbd(i)=2
-     l(i)=-1.0d2
-     u(i)=1.0d2
+     l(i)=-1.0d1
+     u(i)=1.0d1
 10   continue
      
      !     Next set bounds on the even-numbered variables.
      
      do 12 i=2, n,2
         nbd(i)=2
-        l(i)=0d0
-        u(i)=0.5d0
+        l(i)=-1.0d1
+        u(i)=1.0d1
 12      continue
         
         !     We now define the starting point.
@@ -224,8 +224,8 @@ x(1) = -1d0
                  
            if (task(1:5) .eq. 'NEW_X') then
               ! THE ONLY STOPPING CONDITION THAT WE ARE GOING TO USE
-              if (isave(30) .eq. 10000) &
-                   task= 'STOP: TOTAL NUMBER OF ITERATIONS REACHED 10000'
+              if (isave(30) .eq. 1000) &
+                   task= 'STOP: TOTAL NUMBER OF ITERATIONS REACHED 1000'
               
               !        the minimization routine has returned with a new iterate.
               !        The time limit has not been reached, and we test whether
