@@ -2978,7 +2978,7 @@ c     ************
       double precision gi
       double precision one,zero
       parameter        (one=1.0d0,zero=0.0d0)
-
+      
       sbgnrm = zero
       do 15 i = 1, n
         gi = g(i)
@@ -4088,7 +4088,7 @@ c     Subprograms called
 c
 c       MINPACK-2 ... dcstep
 c
-c     MINPACK-1 Project. June 1983.
+c     MINPACK-1 Project June 1983.
 c     Argonne National Laboratory. 
 c     Jorge J. More' and David J. Thuente.
 c
@@ -4121,7 +4121,8 @@ c        Check the input arguments for errors.
          if (xtol .lt. zero) task = 'ERROR: XTOL .LT. ZERO'
          if (stpmin .lt. zero) task = 'ERROR: STPMIN .LT. ZERO'
          if (stpmax .lt. stpmin) task = 'ERROR: STPMAX .LT. STPMIN'
-
+         write(*,*) 'g->'
+         write(*,*) g
 c        Exit if there are errors on input.
 
          if (task(1:5) .eq. 'ERROR') return
@@ -4204,10 +4205,14 @@ c     Test for termination.
       if (task(1:4) .eq. 'WARN' .or. task(1:4) .eq. 'CONV') goto 1000
 
 c     Run the procedure This part is similar to dcstep
-
-      call linesearchstep(stx,fx,gx,sty,fy,gy,stp,f,g,
-     +     brackt,stmin,stmax,finit,ginit,ftest,ftol,gtol)
-
+      write (*,*) 'g: '
+      write (*,*) g
+      
+      if (ABS(sty - stx) > (1 / (2**30))) then
+         call linesearchstep(stx,fx,gx,sty,fy,gy,stp,f,g,
+     +        brackt,stmin,stmax,finit,ginit,ftest,ftol,gtol)
+      endif
+      
 c     Set the minimum and maximum steps allowed for stp.
 
       if (brackt) then
@@ -4360,17 +4365,16 @@ c     **********
       parameter(zero=0.0d0,p66=0.66d0,two=2.0d0,three=3.0d0)
       
       double precision gamma,p,q,r,s,stpc,stpf
-      
+      write(*,*) 'dp:'
+      write(*,*) dp
 c     Check first condition if first condition is violated.  Gone too far
       if (fp .ge. ftest) then 
-c     stpmax = stp
          sty = stp
          fy = fp
          dy = dp
       else
 c     if second condition is violated not gone far enough
          if (-dp .ge. gtol*(-ginit)) then
-c     stpmin = stp
             stx = stp
             fx = fp
             dx = dp
@@ -4388,7 +4392,6 @@ c     Question:  Why expand?
 c     Compute the new step.
       
       stp = stpf
-      
       return
       end
       

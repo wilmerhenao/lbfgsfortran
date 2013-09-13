@@ -197,10 +197,13 @@ x(1) = -1d0
               !          The time limit has not been reached and we compute
               !          the function value f for the sample problem.
               
-              do 1823 i=1,n
-                 g(i)=0d0
-1823             continue
-                 
+              do i = 1 , n
+                 g(i) = 0
+              end do
+!             deallocate(g)
+!              allocate(g(n))
+!              g(:) = 0
+              
               f=((1d0-x(1))**2)/4
               g(1)=-(1-x(1))/2
               
@@ -209,6 +212,8 @@ x(1) = -1d0
                  f=f+abs(z)**p
                  r1=p*(z**2)**(p/2)/z
                  g(i+1)=g(i+1)+r1
+                 write(*, *) 'g(i+1) '
+                 write(*, *) g(i+1)
                  g(i)=g(i)-4d0*x(i)*r1
 20            continue
                  !        write (6,*) 'Current X for debugging ='
@@ -221,7 +226,7 @@ x(1) = -1d0
                  
                  !          go back to the minimization routine.
         else
-                 
+           
            if (task(1:5) .eq. 'NEW_X') then
               ! THE ONLY STOPPING CONDITION THAT WE ARE GOING TO USE
               if (isave(30) .eq. 1000) &
