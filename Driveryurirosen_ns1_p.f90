@@ -115,6 +115,7 @@ program driver
      u(i)=1.0d1
 10   continue
      
+
      !     Next set bounds on the even-numbered variables.
      
      do 12 i=2, n,2
@@ -209,12 +210,28 @@ x(1) = -1d0
               
               do 20 i=1, (n-1)
                  z=1d0+x(i+1)-2d0*x(i)**2
-                 f=f+abs(z)**p
-                 r1=p*(z**2)**(p/2)/z
-                 g(i+1)=g(i+1)+r1
-                 write(*, *) 'g(i+1) '
-                 write(*, *) g(i+1)
-                 g(i)=g(i)-4d0*x(i)*r1
+                 f=f + abs(z)**p
+!                r1=p*(z**2)**(p/2)/z
+                 r1=p * z ** (p - 1)
+                 if (z < 0) then
+                    r1 = -r1
+                 endif
+                 g(i+1) = r1
+!                 write(*, *) 'g(i+1) '
+!                 write(*, *) g(i+1)
+!                 write(*, *) 'g(i) '
+!                 write(*, *) g(i)
+!                 write(*, *) 'r1:'
+!                 write(*, *) r1
+!                 write(*, *) 'p:'
+!                 write(*, *) p
+!                 write(*, *) 'z:'
+!                 write(*, *) z
+                 write(*, *) 'x(i+1)'
+                 write(*, *) x(i+1)
+                 write(*, *) 'x(i)'
+                 write(*, *) x(i)
+                 g(i) = g(i) - 4d0 * x(i) * r1
 20            continue
                  !        write (6,*) 'Current X for debugging ='
                  !                 write (6,'((1x,1p, 6(1x,d11.4)))') (x(i),i = 1,n)

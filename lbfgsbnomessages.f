@@ -4199,11 +4199,11 @@ c     Note that -ginit is always positive
 c     if (f .le. ftest .and. abs(g) .le. gtol*(-ginit)) 
       if ((f .le. ftest) .and. (-g .le. gtol*(-ginit))) 
      +     task = 'CONVERGENCE'
-
+      
 c     Test for termination.
-
+      
       if (task(1:4) .eq. 'WARN' .or. task(1:4) .eq. 'CONV') goto 1000
-
+      
 c     Run the procedure This part is similar to dcstep
       write (*,*) 'g: '
       write (*,*) g
