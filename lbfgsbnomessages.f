@@ -4121,8 +4121,8 @@ c        Check the input arguments for errors.
          if (xtol .lt. zero) task = 'ERROR: XTOL .LT. ZERO'
          if (stpmin .lt. zero) task = 'ERROR: STPMIN .LT. ZERO'
          if (stpmax .lt. stpmin) task = 'ERROR: STPMAX .LT. STPMIN'
-         write(*,*) 'g->'
-         write(*,*) g
+c         write(*,*) 'g->'
+c         write(*,*) g
 c        Exit if there are errors on input.
 
          if (task(1:5) .eq. 'ERROR') return
@@ -4205,8 +4205,8 @@ c     Test for termination.
       if (task(1:4) .eq. 'WARN' .or. task(1:4) .eq. 'CONV') goto 1000
       
 c     Run the procedure This part is similar to dcstep
-      write (*,*) 'g: '
-      write (*,*) g
+c      write (*,*) 'g: '
+c      write (*,*) g
       
       if (ABS(sty - stx) > (1 / (2**30))) then
          call linesearchstep(stx,fx,gx,sty,fy,gy,stp,f,g,
@@ -4365,8 +4365,8 @@ c     **********
       parameter(zero=0.0d0,p66=0.66d0,two=2.0d0,three=3.0d0)
       
       double precision gamma,p,q,r,s,stpc,stpf
-      write(*,*) 'dp:'
-      write(*,*) dp
+c      write(*,*) 'dp:'
+c      write(*,*) dp
 c     Check first condition if first condition is violated.  Gone too far
       if (fp .ge. ftest) then 
          sty = stp

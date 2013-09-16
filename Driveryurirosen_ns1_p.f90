@@ -212,7 +212,7 @@ x(1) = -1d0
                  z=1d0+x(i+1)-2d0*x(i)**2
                  f=f + abs(z)**p
 !                r1=p*(z**2)**(p/2)/z
-                 r1=p * z ** (p - 1)
+                 r1=p * abs(z) ** (p - 1)
                  if (z < 0) then
                     r1 = -r1
                  endif
@@ -227,10 +227,10 @@ x(1) = -1d0
 !                 write(*, *) p
 !                 write(*, *) 'z:'
 !                 write(*, *) z
-                 write(*, *) 'x(i+1)'
-                 write(*, *) x(i+1)
-                 write(*, *) 'x(i)'
-                 write(*, *) x(i)
+!                 write(*, *) 'x(i+1)'
+!                 write(*, *) x(i+1)
+!                 write(*, *) 'x(i)'
+!                 write(*, *) x(i)
                  g(i) = g(i) - 4d0 * x(i) * r1
 20            continue
                  !        write (6,*) 'Current X for debugging ='
