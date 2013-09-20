@@ -233,6 +233,13 @@ x(1) = -1d0
 !                 write(*, *) x(i)
                  g(i) = g(i) - 4d0 * x(i) * r1
 20            continue
+
+              do 212 i = 1, n
+                 write(*, *) 'i, x(i), g(i):'
+                 write(*, *) i
+                 write(*, *) x(i)
+                 write(*, *) g(i)
+212           continue
                  !        write (6,*) 'Current X for debugging ='
                  !                 write (6,'((1x,1p, 6(1x,d11.4)))') (x(i),i = 1,n)
                  !                 write (6,*) 'Current g for debugging ='
@@ -246,8 +253,8 @@ x(1) = -1d0
            
            if (task(1:5) .eq. 'NEW_X') then
               ! THE ONLY STOPPING CONDITION THAT WE ARE GOING TO USE
-              if (isave(30) .eq. 1000) &
-                   task= 'STOP: TOTAL NUMBER OF ITERATIONS REACHED 1000'
+              if (isave(30) .eq. 10000) &
+                   task= 'STOP: TOTAL NUMBER OF ITERATIONS REACHED 10000'
               
               !        the minimization routine has returned with a new iterate.
               !        The time limit has not been reached, and we test whether
