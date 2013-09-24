@@ -63,37 +63,25 @@ program driver
   !     We specify the dimension n of the sample problem and the number
   !        m of limited memory corrections stored. 
   
-  integer,  parameter    :: iprint = -10, numargs = 0
+  integer,  parameter    :: n = 10, m = 1, iprint = -1
   integer,  parameter    :: dp = kind(1.0d0)
   real(dp), parameter    :: factr  = 0.0d0, pgtol  = 0.0d0, &
-       tlimit = 1000.0d0
+       tlimit = 10.0d0
   !
   character(len=60)      :: task, csave
   logical                :: lsave(4)
-  integer                :: isave(44)
+  integer                :: isave(46)
   real(dp)               :: f, r
   real(dp)               :: dsave(29)
   integer,  allocatable  :: nbd(:), iwa(:)
   real(dp), allocatable  :: x(:), l(:), u(:), g(:), wa(:)
   !
-  real(dp)               :: t1, t2, time1, time2, p, z, r
-  integer                :: i, j, m, n
+  real(dp)               :: t1, t2, time1, time2
+  integer                :: i, j
   
-  ! Get outside parameters
-  CHARACTER(len=32) :: arg
-  CALL getarg(1 , arg)
-  read (arg,*) m
-  
-  call getarg(2, arg)
-  read(arg,*) n
-
-  call getarg(3, arg)
-  read(arg,*) p
-
-
   allocate ( nbd(n), x(n), l(n), u(n), g(n) )
   allocate ( iwa(3*n) )
-  allocate ( wa(2*m*n + 5*n + 11*m*m + 8*m) )
+  allocate ( wa(4*m*n + 5*n + 11*m*m + 8*m) )
   
   !     This time-controlled driver shows that it is possible to terminate
   !     a run by elapsed CPU time, and yet be able to print all desired
@@ -124,15 +112,18 @@ program driver
 12      continue
         
         !     We now define the starting point.
-        x(1) = -1d0
-        do 14 i=2, n
-           x(i)=1-2d0**(1-i)
-14      continue
+
+        do 14 i=1, n
+           x(i)=0.4d0
+14         continue
+!        x(1) = 0.5d0
+!x(2) = 0.6d0
+!x(3) = 0.7d0
            !     We now write the heading of the output.
 
-!     write (6,16)
-!16   format(/,5x, 'Solving sample problem.',&
-!          /,5x, ' (f = 0.0 at the optimal solution.)',/) 
+     write (6,16)
+16   format(/,5x, 'Solving sample problem.',&
+          /,5x, ' (f = 0.0 at the optimal solution.)',/) 
 
      !     We start the iteration by initializing task.
 
@@ -192,20 +183,23 @@ program driver
               
               !          The time limit has not been reached and we compute
               !          the function value f for the sample problem.
-              
               do 1823 i=1,n
                  g(i)=0d0
 1823             continue
                  
-              f=((1d0-x(1))**2)/4
-              g(1)=-(1-x(1))/2
+              f=((x(1)-1d0)**2)
+              g(1)=2d0*(x(1)-1d0)
               
               do 20 i=1, (n-1)
-                 z=1d0+x(i+1)-2d0*x(i)**2
+                 z=x(i+1)-x(i)**2
                  f=f+abs(z)**p
-                 r=p*(z**2)^(p/2)/z
-                 g(i+1)=g(i+1)+r
-                 g(i)=g(i)-4d0*x(i)*r
+!                 r1=p*(z**2)**(p/2)/z
+                 r1=p * abs(z)**(p - 1)
+                 if (z < 0) then
+                    r1 = -r1
+                 endif
+                 g(i+1)=r1
+                 g(i)=g(i)-2d0*x(i)*r1
 20            continue
                  !        write (6,*) 'Current X for debugging ='
                  !                 write (6,'((1x,1p, 6(1x,d11.4)))') (x(i),i = 1,n)
@@ -219,9 +213,6 @@ program driver
         else
                  
            if (task(1:5) .eq. 'NEW_X') then
-              ! THE ONLY STOPPING CONDITION THAT WE ARE GOING TO USE
-              if (isave(30) .eq. 10000) &
-                   task= 'STOP: TOTAL NUMBER OF ITERATIONS REACHED 10000'
               
               !        the minimization routine has returned with a new iterate.
               !        The time limit has not been reached, and we test whether
@@ -230,13 +221,13 @@ program driver
               !        1) Terminate if the total number of f and g evaluations
               !             exceeds 900.
               
-              !if (isave(34) .ge. 90000) &
-              !     task='STOP: TOTAL NO. of f AND g EVALUATIONS EXCEEDS LIMIT'
+              if (isave(34) .ge. 90000) &
+                   task='STOP: TOTAL NO. of f AND g EVALUATIONS EXCEEDS LIMIT'
               
               !        2) Terminate if  |proj g|/(1+|f|) < 1.0d-10.
               
-              !if (dsave(13) .le. 1.d-10*(1.0d0 + abs(f))) &
-              !     task='STOP: THE PROJECTED GRADIENT IS SUFFICIENTLY SMALL'
+              if (dsave(13) .le. 1.d-10*(1.0d0 + abs(f))) &
+                   task='STOP: THE PROJECTED GRADIENT IS SUFFICIENTLY SMALL'
               
               !        We wish to print the following information at each iteration:
               !          1) the current iteration number, isave(30),
@@ -247,27 +238,26 @@ program driver
               !        See the comments at the end of driver1 for a description
               !        of the variables isave and dsave.
               
-              !write (6,'(2(a,i5,4x),a,1p,d12.5,4x,a,1p,d12.5)') 'Iterate' &
-              !     ,isave(30),'nfg =',isave(34),'f =',f,'|proj g| =',dsave(13)
+              write (6,'(2(a,i5,4x),a,1p,d12.5,4x,a,1p,d12.5)') 'Iterate' &
+                   ,isave(30),'nfg =',isave(34),'f =',f,'|proj g| =',dsave(13)
               
               !        If the run is to be terminated, we print also the information
               !        contained in task as well as the final value of x.
               
-              !if (task(1:4) .eq. 'STOP') then
-              !   write (6,*) task  
-              !   write (6,*) 'Final X='
-              !   write (6,'((1x,1p, 6(1x,d11.4)))') (x(i),i = 1,n)
-              !endif
+              if (task(1:4) .eq. 'STOP') then
+                 write (6,*) task  
+                 write (6,*) 'Final X='
+                 write (6,'((1x,1p, 6(1x,d11.4)))') (x(i),i = 1,n)
+              endif
               
            endif
         end if 
      end do
      
      !     If task is neither FG nor NEW_X we terminate execution.
-     call timer(time2)
-     write (*,*) 'final results run:', m, n, p, isave(30), isave(34), f, dsave(13), time2-time1, task
-     !write (6,*) 'Final X='
-     !write (6,'((1x,1p, 6(1x,d11.4)))') (x(i),i = 1,n)
+     write (6,*) task  
+     write (6,*) 'Final X='
+     write (6,'((1x,1p, 6(1x,d11.4)))') (x(i),i = 1,n)
    end program driver
    
    !======================= The end of driver3 ============================

@@ -66,7 +66,7 @@ program driver
   integer,  parameter    :: iprint = -10, numargs = 0
   integer,  parameter    :: dp = kind(1.0d0)
   real(dp), parameter    :: factr  = 0.0d0, pgtol  = 0.0d0, &
-       tlimit = 10.0d0
+       tlimit = 1000.0d0
   !
   character(len=60)      :: task, csave
   logical                :: lsave(4)
@@ -115,6 +115,7 @@ program driver
      u(i)=1.0d1
 10   continue
      
+
      !     Next set bounds on the even-numbered variables.
      
      do 12 i=2, n,2
@@ -124,8 +125,6 @@ program driver
 12      continue
         
         !     We now define the starting point.
-
-
 x(1) = -1d0
         do 14 i=2, n
            x(i)=1-2d0**(1-i)
@@ -163,6 +162,7 @@ x(1) = -1d0
                  !        Before evaluating f and g we check the CPU time spent.
 
            call timer(time2)
+           !  if (time2-time1 .gt. tlimit) then
            if (.false.) then
               task='STOP: CPU EXCEEDING THE TIME LIMIT.'
 
@@ -197,7 +197,6 @@ x(1) = -1d0
               
               !          The time limit has not been reached and we compute
               !          the function value f for the sample problem.
-              
               do 1823 i=1,n
                  g(i)=0d0
 1823             continue
@@ -208,8 +207,12 @@ x(1) = -1d0
               do 20 i=1, (n-1)
                  z=x(i+1)-x(i)**2
                  f=f+abs(z)**p
-                 r1=p*(z**2)**(p/2)/z
-                 g(i+1)=g(i+1)+r1
+!                 r1=p*(z**2)**(p/2)/z
+                 r1=p * abs(z)**(p - 1)
+                 if (z < 0) then
+                    r1 = -r1
+                 endif
+                 g(i+1)=r1
                  g(i)=g(i)-2d0*x(i)*r1
 20            continue
                  !        write (6,*) 'Current X for debugging ='
@@ -222,11 +225,12 @@ x(1) = -1d0
                  
                  !          go back to the minimization routine.
         else
-                 
+           
            if (task(1:5) .eq. 'NEW_X') then
               ! THE ONLY STOPPING CONDITION THAT WE ARE GOING TO USE
-              if (isave(30) .eq. 1000) &
-                   task= 'STOP: TOTAL NUMBER OF ITERATIONS REACHED 1000'
+              if (isave(30) .eq. 10000) &
+                   task= 'STOP: TOTAL NUMBER OF ITERATIONS REACHED 10000'
+              
               !        the minimization routine has returned with a new iterate.
               !        The time limit has not been reached, and we test whether
               !        the following two stopping tests are satisfied:
@@ -269,7 +273,7 @@ x(1) = -1d0
      
      !     If task is neither FG nor NEW_X we terminate execution.
      call timer(time2)
-     write (*,*) 'final results Rosenbrock run:', m, n, p, isave(30), isave(34), f, dsave(13), time2-time1, task
+     write (*,*) 'final results yurirosen run:', m, n, p, isave(30), isave(34), f, dsave(13), time2-time1, task
      !write (6,*) 'Final X='
      !write (6,'((1x,1p, 6(1x,d11.4)))') (x(i),i = 1,n)
    end program driver
