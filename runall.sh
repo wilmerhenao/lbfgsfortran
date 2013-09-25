@@ -24,7 +24,7 @@ for n in 2 4 6 8 10 20 50 100 200 1000 10000
       for m in 5 10 20
       do
 	  echo $m $n $p
-	  ./yurirosenp $m $n $p
+	  ./rosenbrockp $m $n $p
       done
   done
 done
