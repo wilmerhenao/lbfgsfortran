@@ -111,8 +111,8 @@ program driver
   
   do 10 i=1, n,2
      nbd(i)=2
-     l(i)=-1.0d1
-     u(i)=1.0d1
+     l(i)=1.0d1
+     u(i)=1.0d2
 10   continue
      
 
@@ -120,8 +120,8 @@ program driver
      
      do 12 i=2, n,2
         nbd(i)=2
-        l(i)=-1.0d1
-        u(i)=1.0d1
+        l(i)=-1.0d2
+        u(i)=1.0d2
 12      continue
         
         !     We now define the starting point.
@@ -241,7 +241,6 @@ x(1) = -1d0
               
               !if (isave(34) .ge. 90000) &
               !     task='STOP: TOTAL NO. of f AND g EVALUATIONS EXCEEDS LIMIT'
-              
               !        2) Terminate if  |proj g|/(1+|f|) < 1.0d-10.
               
               !if (dsave(13) .le. 1.d-10*(1.0d0 + abs(f))) &
@@ -276,13 +275,14 @@ x(1) = -1d0
      call timer(time2)
      write (*,*) 'final results yurirosen run:', m, n, p, isave(30), isave(34), f, dsave(13), time2-time1, task
      do 2323 i = 1,n
-        
         write(*, *) 'i='
         write(*, *) i
         write(*, *) 'x(i)='
         write(*, *) x(i)
-        
+        write(*, *) 'g(i)='
+        write(*, *) g(i)
 2323    continue
+        
      !write (6,*) 'Final X='
      !write (6,'((1x,1p, 6(1x,d11.4)))') (x(i),i = 1,n)
    end program driver
