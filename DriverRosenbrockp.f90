@@ -266,7 +266,7 @@ x(1) = -1d0
               !   write (6,*) 'Final X='
               !   write (6,'((1x,1p, 6(1x,d11.4)))') (x(i),i = 1,n)
               !endif
-              
+
            endif
         end if 
      end do
@@ -274,15 +274,13 @@ x(1) = -1d0
      !     If task is neither FG nor NEW_X we terminate execution.
      call timer(time2)
      write (*,*) 'final results yurirosen run:', m, n, p, isave(30), isave(34), f, dsave(13), time2-time1, task
-     do 2323 i = 1,n
-        write(*, *) 'i='
-        write(*, *) i
-        write(*, *) 'x(i)='
-        write(*, *) x(i)
-        write(*, *) 'g(i)='
-        write(*, *) g(i)
-2323    continue
-        
+     
+     write (6,*) task  
+     write (6,*) 'Final X='
+     write (6,'((1x,1p, 6(1x,d11.4)))') (x(i),i = 1,n)
+     write (6,*) 'Final G='
+     write (6,'((1x,1p, 6(1x,d11.4)))') (g(i),i = 1,n)
+                 
      !write (6,*) 'Final X='
      !write (6,'((1x,1p, 6(1x,d11.4)))') (x(i),i = 1,n)
    end program driver
