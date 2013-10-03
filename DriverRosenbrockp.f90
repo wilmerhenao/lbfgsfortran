@@ -273,7 +273,7 @@ x(1) = -1d0
      
      !     If task is neither FG nor NEW_X we terminate execution.
      call timer(time2)
-     write (*,*) 'final results yurirosen run:', m, n, p, isave(30), isave(34), f, dsave(13), time2-time1, task
+     write (*,*) 'final results rosenbrock (new) run:', m, n, p, isave(30), isave(34), f, dsave(13), time2-time1, task
      
      write (6,*) task  
      write (6,*) 'Final X='

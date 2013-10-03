@@ -15,7 +15,7 @@
 #%%  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-for n in 2 4 6 8 10 20 50
+for n in 2 4 6 8 10 20 50 100 200 1000
   do
     
   for p in 2 1.1 1.01 1.001 1.0001 1.00001 1.000001 1.0000001 1.00000001 1.000000001 1.0000000001 1.00000000001
@@ -25,6 +25,7 @@ for n in 2 4 6 8 10 20 50
       do
 	  echo $m $n $p
 	  ./rosenbrockp $m $n $p
+	  ~/Documents/thesis/Lbfgsb.3.0/./x.lbfgsb_90_3_inputs $m $n $p
       done
   done
 done
