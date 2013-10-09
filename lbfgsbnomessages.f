@@ -4179,7 +4179,7 @@ c     Restore local variables.
          stmax = dsave(11) 
          width = dsave(12) 
          width1 = dsave(13) 
-
+         
       endif
       ftest = finit + stp * gtest 
 c     Test for warnings.
@@ -4396,3 +4396,267 @@ c     Compute the new step.
       end
       
 c====================== The end of linesearchstep ==============================
+
+c  This is a function
+c that finds the solution to the QP problem
+c  []
+c [x,d,q,info] = qpspecial(G,varargin)
+c
+c Solves the QP
+c
+c    min     q(x)  = || G*x ||_2^2 = x'*(G'*G)*x
+c    s.t.  sum(x)  = 1
+c              x  >= 0
+c
+c The problem corresponds to finding the smallest vector
+c (2-norm) in the convex hull of the columns of G
+c
+c Inputs:
+c     G            -- (M x n double) matrix G, see problem above
+c     varargin{1}  -- (int) maximum number of iterates allowed
+c                     If not present, maxit = 100 is used
+c     varargin{2}  -- (n x 1 double) vector x0 with initial (FEASIBLE) iterate.
+c                     If not present, (or requirements on x0 not met) a
+c                     useable default x0 will be used
+c
+c Outputs:
+c     x       -- Optimal point attaining optimal value
+c     d = G*x -- Smallest vector in the convex hull
+c     q       -- Optimal value found = d'*d
+c     info    -- Run data:
+c                info(1) =
+c                   0 = everything went well, q is optimal
+c                   1 = maxit reached and final x is feasible. so q
+c                       might not be optimal, but it is better than q(x0)
+c                   2 = something went wrong
+c                info(2) = #iterations used
+
+subroutine qpspecial(m, n, G, maxit)
+implicit none
+integer  ::          m, n, maxit
+double precision, dimension(m, n) :: G
+cdouble precision, dimension(n)    :: qpspecial
+
+c  This is a program that finds the solution to the QP problem
+c  []
+c [x,d,q,info] = qpspecial(G,varargin)
+c
+c Solves the QP
+c
+c    min     q(x)  = || G*x ||_2^2 = x'*(G'*G)*x
+c    s.t.  sum(x)  = 1
+c              x  >= 0
+c
+c The problem corresponds to finding the smallest vector
+c (2-norm) in the convex hull of the columns of G
+c
+c Inputs:
+c     G            -- (M x n double) matrix G, see problem above
+c     varargin{1}  -- (int) maximum number of iterates allowed
+c                     If not present, maxit = 100 is used
+c     varargin{2}  -- (n x 1 double) vector x0 with initial (FEASIBLE) iterate.
+c                     If not present, (or requirements on x0 not met) a
+c                     useable default x0 will be used
+c
+c Outputs:
+c     x       -- Optimal point attaining optimal value
+c     d = G*x -- Smallest vector in the convex hull
+c     q       -- Optimal value found = d'*d
+c     info    -- Run data:
+c                info(1) =
+c                   0 = everything went well, q is optimal
+c                   1 = maxit reached and final x is feasible. so q
+c                       might not be optimal, but it is better than q(x0)
+c                   2 = something went wrong
+c                info(2) = #iterations used
+
+integer          :: echo, info, k, i, j
+double precision :: ptemp, eta, delta, mu0, tolmu, tolrs, kmu, nQ, krs, ap, ad, Mm, r2, rs, mu, sig, dummy
+double precision :: r5, r6, dy, muaff, y
+double precision, dimension(n)    :: x, z, zdx, KT, r1, r3, r4, r7, e, work, dx, dz, p
+double precision, dimension(m)    :: d
+double precision, dimension(n, n) :: Q, QD, C, invTrC, invC
+
+integer, dimension(n) :: ipiv
+character        :: uplo
+double precision, external :: DPOTRF 
+external DGETRF, DGETRI
+
+double precision, external :: norminf
+
+uplo = 'U'
+c External procedures defined in lapack
+
+echo = 0
+c Check the dimensions
+if (m*n .le. 0) then
+   write(*,*) 'qpspecial is empty'
+endif
+
+c Create a vector of ones and use it as a starting point
+
+do 10322 i = 1, n
+   e(i) = 1d0
+10322 continue
+   
+x = e
+
+c Hessian in QP
+Q = matmul(transpose(G), G)
+
+z = x
+y = 0d0
+eta = 0.9995d0 c step size dampening
+delta = 3d0    c for the sigma heuristic
+mu0 = dot_product(x, z) / n
+c constants for stopping, residuals, init steps.
+tolmu = 1d-5
+tolrs = 1d-5
+kmu = tolmu * mu0
+nQ = norminf(n, Q) + 2d0
+krs = tolrs * nQ
+ap = 0d0
+ad = 0d0
+
+do 2122 k = 1, maxit
+   c residuals
+   r1 = -matmul(Q,x) + e*y + z
+   r2 = -1d0 + SUM(x)
+   r3 = -x*z   c slacks
+   rs = MAX(sum(abs(r1)), abs(r2))
+   mu = -sum(r3)/n c current mu
+   if(mu .lt. kmu) then
+      if(rs .lt. krs) then
+         write(*,*) 'converged and jumping out'
+         goto 9921
+      end if
+   end if
+   zdx = z / x
+   QD = Q
+   do 3000 i = 1, n
+      QD(i,i) = QD(i,i) + zdx(i)
+3000  continue
+   dummy = DPOTRF(uplo, n, QD, n, info)
+   if(0 /= info) then
+      stop 'Matrix is not positive definite'
+   endif
+
+   c clean the matrix lower part   
+   do 4000 i= 1, n
+      do 4100 j = (i+1), n
+         QD(j,i) = 0d0
+4100  continue
+4000  continue
+
+   C = QD
+   invTrC = transpose(C)
+   invC = C
+   
+   call DGETRF(n, n, invTrC, n, ipiv, info)
+   if (0 /= info) then
+      stop 'Matrix is numerically singular!'
+   endif
+ 
+   
+   call DGETRI(n, invTrC, n, ipiv, work, n, info)
+   if(0 /= info) then
+      stop 'Matrix inversion failed!'
+   endif
+   
+   call DGETRF(n, n, invC, n, ipiv, info)
+   if (0 /= info) then
+      stop 'Matrix is numerically singular!'
+   endif
+
+   call DGETRI(n, invC, n, ipiv, work, n, info)
+   if(0 /= info) then
+      stop 'Matrix inversion failed!'
+   endif
+   KT = matmul(invTrC, e)
+   
+   Mm = dot_product(KT, KT)
+   c compute approx. tangent direction using factorization from above
+   r4 = r1 + r3 / x
+   r5 = dot_product(KT, matmul(invTrC, r4))
+   r6 = r2 + r5
+   dy = -r6 / Mm
+   r7 = r4 + e * dy
+   dx = matmul(invC, matmul(invTrC, r7))
+   dz = (r3 - z * dx) / x
+   c determine maximal step possible in the approx. tangent directions
+   p = -x / dx
+   ptemp = 1d0
+   do 2142 i = 1, n
+      if (p(i) .gt. 0d0) then 
+         ptemp = min(p(i), ptemp)
+      endif
+2142  continue
+   c and here the dual step size using diff. steps in primal and dual improves pfmnce a bit
+   ap = min(ptemp, 1d0)
+   ptemp = 1d0
+   p = -z / dz
+do 2143 i = 1, n
+      if (p(i) .gt. 0d0) then 
+         ptemp = min(p(i), ptemp)
+      endif
+2143  continue
+   ad = min(ptemp, 1d0)
+   muaff = dot_product((x + ap * dx), (z + ad * dz)) / n
+   sig = (muaff/mu)**delta
+
+   r3 = r3 + sig * mu
+   r3 = r3 - dx * dz
+   r4 = r1 + r3 / x
+   r5 = dot_product(KT, matmul(invTrC, r4))
+   r6 = r2 + r5
+   dy = -r6/Mm
+   r7 = r4 + e * dy
+   dx = matmul(invC, matmul(invTrC, r7))
+   dz = (r3-z*dx)/x
+
+   p = -x/dx
+   ptemp = 1d0
+   do 2144 i = 1, n
+      if (p(i) .gt. 0d0) then 
+         ptemp = min(p(i), ptemp)
+      endif
+2144  continue
+   ap = min(ptemp, 1d0)
+   
+   ptemp = 1d0
+   p = -z / dz
+   do 2145 i = 1, n
+      if (p(i) .gt. 0d0) then 
+         ptemp = min(p(i), ptemp)
+      endif
+2145  continue
+   ad = min(ptemp, 1d0)
+   c update variables,  primal, dual multipliers, dual slacks
+   x=x+eta*ap*dx
+   y=y+eta*ad*dy
+   z=z+eta*ad*dz
+2122 continue
+9921 continue
+x = max(x, 0d0)
+x = x/sum(x)
+d = matmul(G, x)
+q = dot_product(d,d)
+write(*, *) x
+write(*,*) 'done'
+end 
+c ----------------------- end of qpspecial ---------------------------------
+
+function norminf(n, G) result(normvalue)
+double precision G(n, n), normvalue, normvaluetemp
+integer :: n
+normvalue = 0d0
+
+do 1100 i = 1, n
+   normvaluetemp = 0d0
+   do 1200 j = 1, n
+      normvaluetemp = normvaluetemp + abs(G(i, j))
+   1200  continue
+   normvalue = max(normvalue, normvaluetemp)
+1100  continue
+end function norminf
+c ----------------------- end of norminf ------------------------------------

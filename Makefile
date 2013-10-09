@@ -20,7 +20,7 @@ DRIVER14_90 = nactfaces.f90
 DRIVER15_90 = Driveryurirosen_ns1_p.f90
 DRIVER16_90 = DriverRosenbrockp.f90
 
-LBFGSB  = lbfgsbnomessages.f
+LBFGSB  = lbfgsbnomessages.f90
 LINPACK = linpack.f
 BLAS    = blas.f
 TIMER   = timer.f
