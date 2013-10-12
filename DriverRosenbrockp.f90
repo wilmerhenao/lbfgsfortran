@@ -77,7 +77,7 @@ program driver
   real(dp), allocatable  :: x(:), l(:), u(:), g(:), wa(:)
   !
   real(dp)               :: t1, t2, time1, time2, p, z, r1
-  integer                :: i, j, m, n
+  integer                :: i, j, m, n, nfg, startx, startg
   
   ! Get outside parameters
   CHARACTER(len=32) :: arg
@@ -147,7 +147,7 @@ x(1) = -1d0
      !     We begin counting the CPU time.
 
      call timer(time1)
-
+     nfg = 0
      do while( task(1:2).eq.'FG'.or.task.eq.'NEW_X'.or. &
           task.eq.'START')
 
@@ -201,21 +201,32 @@ x(1) = -1d0
                  g(i)=0d0
 1823             continue
                  
-              f=((x(1)-1d0)**2)
-              g(1)=2d0*(x(1)-1d0)
-              
-              do 20 i=1, (n-1)
-                 z=x(i+1)-x(i)**2
-                 f=f+abs(z)**p
-!                 r1=p*(z**2)**(p/2)/z
-                 r1=p * abs(z)**(p - 1)
-                 if (z < 0) then
-                    r1 = -r1
+                 f=((x(1)-1d0)**2)
+                 g(1)=2d0*(x(1)-1d0)
+                 
+                 do 20 i=1, (n-1)
+                    z=x(i+1)-x(i)**2
+                    f=f+abs(z)**p
+                    !                 r1=p*(z**2)**(p/2)/z
+                    r1=p * abs(z)**(p - 1)
+                    if (z < 0) then
+                       r1 = -r1
                  endif
                  g(i+1)=r1
                  g(i)=g(i)-2d0*x(i)*r1
-20            continue
-
+20               continue
+                 nfg = nfg+1
+                 ! Write f on the wa matrix for later stopping condition
+                 startx = isave(45) + mod(nfg, m)
+                 startg = isave(46) + mod(nfg, m)
+                 do i = startx, (startx + n - 1)
+                    wa(i) = x(i)
+                 end do
+                 
+                 do i = startg, (startg + n - 1)
+                    wa(i) = g(i)
+                 end do
+                 
                  !        write (6,*) 'Current X for debugging ='
                  !                 write (6,'((1x,1p, 6(1x,d11.4)))') (x(i),i = 1,n)
                  !                 write (6,*) 'Current g for debugging ='
@@ -266,7 +277,7 @@ x(1) = -1d0
               !   write (6,*) 'Final X='
               !   write (6,'((1x,1p, 6(1x,d11.4)))') (x(i),i = 1,n)
               !endif
-
+              
            endif
         end if 
      end do

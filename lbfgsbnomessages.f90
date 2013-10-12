@@ -255,6 +255,7 @@
          isave(15) = isave(14) + n          ! wxp     n
          isave(16) = isave(15) + n          ! wa      8*m
          isave(45) = isave(16) + 8*m        ! ----    m*n
+         isave(46) = isave(45) + m*n        ! ----    m*n
       endif
       lws  = isave(4)
       lwy  = isave(5)
@@ -270,13 +271,14 @@
       lxp  = isave(15)
       lwa  = isave(16)
       lg = isave(45)
-
+      lx = isave(46)
+      
       call mainlb(n,m,x,l,u,nbd,f,g,factr,pgtol, &
            wa(lws),wa(lwy),wa(lsy),wa(lss), wa(lwt), &
            wa(lwn),wa(lsnd),wa(lz),wa(lr),wa(ld),wa(lt),wa(lxp), &
            wa(lwa), &
            iwa(1),iwa(n+1),iwa(2*n+1),task,iprint, &
-           csave,lsave,isave(22),dsave,wa(lg))
+           csave,lsave,isave(22),dsave,wa(lg), wa(lg))
 
       return
 
@@ -287,7 +289,7 @@
       subroutine mainlb(n, m, x, l, u, nbd, f, g, factr, pgtol, ws, wy, &
            sy, ss, wt, wn, snd, z, r, d, t, xp, wa, &
            index, iwhere, indx2, task, &
-           iprint, csave, lsave, isave, dsave, matG)
+           iprint, csave, lsave, isave, dsave, matG, matX)
         implicit none
         character*60     task, csave
         logical          lsave(4)
@@ -297,7 +299,8 @@
              xp(n), &
              wa(8*m), &
              ws(n, m), wy(n, m), sy(m, m), ss(m, m), &
-             wt(m, m), wn(2*m, 2*m), snd(2*m, 2*m), dsave(29), matG(n, m)
+             wt(m, m), wn(2*m, 2*m), snd(2*m, 2*m), dsave(29), matG(n, m), &
+             matX(n, m)
         
 !     ************
 !
@@ -543,7 +546,7 @@
  
 !           'word' records the status of subspace solutions.
          word = '---'
-
+         
 !           'info' records the termination information.
          info = 0
          
@@ -574,12 +577,12 @@
 
       else
 !          restore local variables.
-
+         
          prjctd = lsave(1)
          cnstnd = lsave(2)
          boxed  = lsave(3)
          updatd = lsave(4)
-
+         
          nintol = isave(1)
          itfile = isave(3)
          iback  = isave(4)
@@ -598,7 +601,7 @@
          nact   = isave(18)
          ileave = isave(19)
          nenter = isave(20)
-
+         
          theta  = dsave(1)
          fold   = dsave(2)
          tol    = dsave(3)
@@ -615,10 +618,10 @@
          stp    = dsave(14)
          gdold  = dsave(15)
          dtd    = dsave(16)
-   
+         
 !        After returning from the driver go to the point where execution
 !        is to resume.
-
+         
          if (task(1:5) .eq. 'FG_LN') goto 666
          if (task(1:5) .eq. 'NEW_X') goto 777
          if (task(1:5) .eq. 'FG_ST') goto 111
@@ -923,28 +926,28 @@
          if (iprint .ge. 1) write (6,1004) dr, ddum
          goto 888
       endif 
- 
+
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
 !     Update the L-BFGS matrix.
 !
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
- 
+
       updatd = .true.
       iupdat = iupdat + 1
 
 !     Update matrices WS and WY and form the middle matrix in B.
 
       call matupd(n,m,ws,wy,sy,ss,d,r,itail, &
-                 iupdat,col,head,theta,rr,dr,stp,dtd,matG,g)
-
+                 iupdat,col,head,theta,rr,dr,stp,dtd)
+      
 !     Form the upper half of the pds T = theta*SS + L*D^(-1)*L';
 !        Store T in the upper triangular of the array wt;
 !        Cholesky factorize T to J*J' with
 !           J' stored in the upper triangular of wt.
 
       call formt(m,wt,sy,ss,col,theta,info)
- 
+      
       if (info .ne. 0) then 
 !          nonpositive definiteness in Cholesky factorization;
 !          refresh the lbfgs memory and restart the iteration.
@@ -964,9 +967,9 @@
 !       [ -L*D^(-1/2)   J ] [  0        J'          ]
       
  888  continue
- 
+      
 ! -------------------- the end of the loop -----------------------------
- 
+      
       goto 222
  999  continue
       call timer(time2)
@@ -2541,9 +2544,9 @@
 
       dtd = ddot(n,d,1,d,1)
       dnorm = sqrt(dtd)
-
+      
 !     Determine the maximum step length.
-
+      
       stpmx = big
       if (cnstnd) then
          if (iter .eq. 0) then
@@ -2598,7 +2601,7 @@
             return
          endif
       endif
-
+      
 !     call dcsrch(f,gd,stp,ftol,gtol,xtol,zero,stpmx,csave,isave,dsave)
       call lineww(f,gd,stp,ftol,gtol,xtol,zero,stpmx,csave,isave,dsave)
 
@@ -2626,11 +2629,11 @@
 !======================= The end of lnsrlb =============================
 
       subroutine matupd(n, m, ws, wy, sy, ss, d, r, itail, &
-                       iupdat, col, head, theta, rr, dr, stp, dtd,matG,g)
+                       iupdat, col, head, theta, rr, dr, stp, dtd)
  
       integer          n, m, itail, iupdat, col, head
       double precision theta, rr, dr, stp, dtd, d(n), r(n),  &
-                      ws(n, m), wy(n, m), sy(m, m), ss(m, m), matG(n,m),g(n)
+                      ws(n, m), wy(n, m), sy(m, m), ss(m, m)
 
 !     ************
 !
@@ -2675,7 +2678,6 @@
 
       call dcopy(n,d,1,ws(1,itail),1)
       call dcopy(n,r,1,wy(1,itail),1)
-      call dcopy(n,g,1,matG(1,itail),1)
  
 !     Set theta=yy/ys.
  
