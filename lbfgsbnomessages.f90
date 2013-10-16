@@ -487,7 +487,7 @@
         integer          i,j,k,nintol,itfile,iback,nskip, &
              head,col,iter,itail,iupdat, &
              nseg,nfgv,info,ifun, &
-             iword,nfree,nact,ileave,nenter, ncols
+             iword,nfree,nact,ileave,nenter, ncols, indclose
         double precision theta,fold,ddot,dr,rr,tol, &
              xstep,sbgnrm,ddum,dnorm,dtd,epsmch, &
              cpu1,cpu2,cachyt,sbtime,lnscht,time1,time2, &
@@ -774,7 +774,7 @@
       call timer(cpu2) 
       sbtime = sbtime + cpu2 - cpu1 
  555  continue
- 
+      
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !                                                                      c
 !     Line search and optimality tests.                                c
@@ -808,34 +808,37 @@
          
          newd = 0.0d0
          matGfree = 0.0d0
+         indclose = 0         ! counts all of the vectors that are close enough
          do j = 1, ncols
             closeenough = .false.
-            call checkifxbelongs(n, m, x, matX, j, closeenough)
+            call checkifxbelongs(n, m, x, matX, j, closeenough, taux)
             if (closeenough) then
+               indclose = indclose + 1
                do i = 1, nfree
-                  matGfree(i,j) = matG(index(i), j)
+                  matGfree(i,indclose) = matG(index(i), j)
                end do
             endif
          end do
-         
-         call  qpspecial(nfree, ncols, matGfree, 100, freex, newd, normd)
-         
-         do i = 1, n
-            newx(i) = x(i)
-         end do
-         
-         do i = 1, nfree
-            newx(index(i)) = freex(i)
-         end do
-         
-         do i = 1, n            
-            distx(i) = newx(i) - x(i)
-         end do
-         
-         mxdi = sqrt(dot_product(distx, distx))
-         if(mxdi < 0.00000000001d0 .and. normd < 0.00000000001d0) then
-            write(*,*) 'in the convex hull'
-            task = 'CONVERGENCE: ZERO GRADIENT IN CONVEX HULL'
+         if(nfree * indclose .gt. 0) then
+            call  qpspecial(nfree, indclose, matGfree, 100, freex, newd, normd)
+            
+            do i = 1, n
+               newx(i) = x(i)
+            end do
+            
+            do i = 1, nfree
+               newx(index(i)) = freex(i)
+            end do
+            
+            do i = 1, n            
+               distx(i) = newx(i) - x(i)
+            end do
+            
+            mxdi = sqrt(dot_product(distx, distx))
+            if(mxdi < 0.00000000001d0 .and. normd < 0.00000000001d0) then
+               write(*,*) 'in the convex hull'
+               task = 'CONVERGENCE: ZERO GRADIENT IN CONVEX HULL'
+            endif
          endif
       endif
 
@@ -4707,3 +4710,29 @@ do 1100 i = 1, n
 1100  continue
 end function norminf
 ! ----------------------- end of norminf ------------------------------------
+
+
+subroutine checkifxbelongs(n, m, x, matX, j, closee, taux)
+  implicit none
+  integer n, m, j
+  double precision, dimension(n)    :: x
+  double precision, dimension(n, m) :: matX
+  logical closee
+  double precision :: sumd=0.0d0, taux
+  integer i
+  
+  ! calculate the distance from x to the corresponding j vector
+  
+  do i = 1, n
+     sumd = sumd + (x(i) - matX(i, j))**2
+  enddo
+  
+  sumd = sqrt(sumd)
+  
+  if(sumd < taux) then
+     closee = .true.
+  endif
+  
+end subroutine checkifxbelongs
+
+! ----------------------- end of checkifxbelongs ---------------------------

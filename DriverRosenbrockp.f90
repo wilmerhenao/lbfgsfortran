@@ -299,13 +299,3 @@ x(1) = -1d0
    end program driver
    
    !======================= The end of driver3 ============================
-
-subroutine checkifxbelongs(n, m, x, matX, j, closee)
-  implicit none
-  integer n, m, j
-  double precision, dimension(n)    :: x
-  double precision, dimension(n, m) :: matX
-  logical closee
-  
-
-end subroutine checkifxbelongs
