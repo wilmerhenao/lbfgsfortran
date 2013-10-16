@@ -66,7 +66,7 @@ program driver
   integer,  parameter    :: iprint = -10, numargs = 0
   integer,  parameter    :: dp = kind(1.0d0)
   real(dp), parameter    :: factr  = 0.0d0, pgtol  = 0.0d0, &
-       tlimit = 1000.0d0
+       tlimit = 1000.0d0, taux = 1.0d-4
   !
   character(len=60)      :: task, csave
   logical                :: lsave(4)
@@ -154,7 +154,7 @@ x(1) = -1d0
         !     This is the call to the L-BFGS-B code.
 
         call setulb(n,m,x,l,u,nbd,f,g,factr,pgtol,wa,iwa, &
-             task,iprint, csave,lsave,isave,dsave)
+             task,iprint, csave,lsave,isave,dsave,taux)
         if (task(1:2) .eq. 'FG') then
 
                  !        the minimization routine has returned to request the
@@ -217,8 +217,8 @@ x(1) = -1d0
 20               continue
                  nfg = nfg+1
                  ! Write f on the wa matrix for later stopping condition
-                 startx = isave(45) + mod(nfg, m)
-                 startg = isave(46) + mod(nfg, m)
+                 startg = isave(45) + mod(nfg, m)
+                 startx = isave(46) + mod(nfg, m)
                  do i = startx, (startx + n - 1)
                     wa(i) = x(i)
                  end do

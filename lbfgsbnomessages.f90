@@ -46,7 +46,7 @@
 !============================================================================= 
       subroutine setulb(n, m, x, l, u, nbd, f, g, factr, pgtol, wa, iwa, &
            task, iprint, csave, lsave, isave, dsave)
- 
+        
       character*60     task, csave
       logical          lsave(4)
       integer          n, m, iprint, nbd(n), iwa(3*n), isave(46)
@@ -236,7 +236,7 @@
 !     ************
 !-jlm-jn 
       integer   lws,lr,lz,lt,ld,lxp,lwa,lwy,lsy,lss,lwt,lwn,lsnd,lg
-
+      
       if (task .eq. 'START') then
          isave(1)  = m*n
          isave(2)  = m**2
@@ -278,7 +278,7 @@
            wa(lwn),wa(lsnd),wa(lz),wa(lr),wa(ld),wa(lt),wa(lxp), &
            wa(lwa), &
            iwa(1),iwa(n+1),iwa(2*n+1),task,iprint, &
-           csave,lsave,isave(22),dsave,wa(lg), wa(lg))
+           csave,lsave,isave(22),dsave,wa(lg), wa(lx))
 
       return
 
