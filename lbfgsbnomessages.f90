@@ -495,8 +495,8 @@
              cpu1,cpu2,cachyt,sbtime,lnscht,time1,time2, &
              gd,gdold,stp,stpmx,time
         double precision one,zero, normd, mxdi
-          double precision, dimension(n) :: newx, distx, freex
-          double precision, dimension(m) :: newd
+          double precision, dimension(n) :: newx, distx, freex  !n when full
+          double precision, allocatable :: newd(:)                !m when full
           double precision, allocatable :: matGfree(:, :)
         parameter        (one=1.0d0,zero=0.0d0)
       
@@ -798,12 +798,12 @@
       ncols = min(nfg, m)
       if (ncols * nfree .gt. 0) then
          write(*, *) 'ncols', ncols, 'nfree', nfree
-         do i = 1, n
-            newd(i) = 0
-         end do
          
-         !Create matrix matGfree
+         !Create allocatable matrices now that I have the dimensions
+         ! matrix matGfree
          allocate(matGfree(nfree, ncols))
+         allocate(newd(ncols))
+         newd = 0.0d0
          do i = 1, nfree
             do j = 1, ncols
                matGfree(i, j) = 0.0d0
