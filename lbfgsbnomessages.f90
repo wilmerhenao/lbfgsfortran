@@ -49,11 +49,12 @@
         
       character*60     task, csave
       logical          lsave(4)
-      integer          n, m, iprint, nbd(n), iwa(3*n), isave(46)
+      integer          n, m, iprint, nbd(n), iwa(3*n), isave(46), &
+           nfg
       double precision f, factr, pgtol, x(n), l(n), u(n), g(n), &
 !
 !-jlm-jn
-           wa(4*m*n + 5*n + 11*m*m + 8*m), dsave(29), taux, nfg
+           wa(4*m*n + 5*n + 11*m*m + 8*m), dsave(29), taux
  
 !     ************
 !
@@ -488,7 +489,7 @@
         integer          i,j,k,nintol,itfile,iback,nskip, &
              head,col,iter,itail,iupdat, &
              nseg,nfgv,info,ifun, &
-             iword,nfree,nact,ileave,nenter
+             iword,nfree,nact,ileave,nenter, ncols
         double precision theta,fold,ddot,dr,rr,tol, &
              xstep,sbgnrm,ddum,dnorm,dtd,epsmch, &
              cpu1,cpu2,cachyt,sbtime,lnscht,time1,time2, &
@@ -496,7 +497,7 @@
         double precision one,zero, normd, mxdi
           double precision, dimension(n) :: newx, distx, freex
           double precision, dimension(m) :: newd
-          double precision, allocatable(:,:) :: matGfree
+          double precision, allocatable :: matGfree(:, :)
         parameter        (one=1.0d0,zero=0.0d0)
       
         if (task .eq. 'START') then
@@ -794,43 +795,47 @@
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      
-      do i = 1, n
-         newd(i) = 0
-      end do
-
-      !Create matrix matGfree
-      do i = 1, m
-         do j = 1, n
-            matGfree(i, j) = 0.0d0
+      ncols = min(nfg, m)
+      if (ncols * nfree .gt. 0) then
+         write(*, *) 'ncols', ncols, 'nfree', nfree
+         do i = 1, n
+            newd(i) = 0
          end do
-      end do
-
-      do i = 1, nfree
-         do j = 1, n
-            matGfree(i,j) = matG(index(i), j)
+         
+         !Create matrix matGfree
+         allocate(matGfree(nfree, ncols))
+         do i = 1, nfree
+            do j = 1, ncols
+               matGfree(i, j) = 0.0d0
+            end do
          end do
-      end do
-
-      call  qpspecial(nfree, col, matGfree, 100, freex, newd, normd)
-
-      do i = 1, n
-         newx(i) = x(i)
-      end do
-
-      do i = 1, nfree
-         newx(index(i)) = freex(i)
-      end do
-
-      do i = 1, n            
-         distx(i) = newx(i) - x(i)
-      end do
-      mxdi = sqrt(dot_product(distx, distx))
-      if(mxdi < 0.00000000001d0 .and. normd < 0.00000000001d0) then
-         write(*,*) 'in the convex hull'
-         task = 'CONVERGENCE: ZERO GRADIENT IN CONVEX HULL'
+         
+         do i = 1, nfree
+            do j = 1, n
+               matGfree(i,j) = matG(index(i), j)
+            end do
+         end do
+         
+         call  qpspecial(nfree, col, matGfree, 100, freex, newd, normd)
+         
+         do i = 1, n
+            newx(i) = x(i)
+         end do
+         
+         do i = 1, nfree
+            newx(index(i)) = freex(i)
+         end do
+         
+         do i = 1, n            
+            distx(i) = newx(i) - x(i)
+         end do
+         
+         mxdi = sqrt(dot_product(distx, distx))
+         if(mxdi < 0.00000000001d0 .and. normd < 0.00000000001d0) then
+            write(*,*) 'in the convex hull'
+            task = 'CONVERGENCE: ZERO GRADIENT IN CONVEX HULL'
+         endif
       endif
-
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
