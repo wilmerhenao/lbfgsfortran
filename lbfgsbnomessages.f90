@@ -816,7 +816,7 @@
             end do
          end do
          
-         call  qpspecial(nfree, col, matGfree, 100, freex, newd, normd)
+         call  qpspecial(nfree, ncols, matGfree, 100, freex, newd, normd)
          
          do i = 1, n
             newx(i) = x(i)
