@@ -70,7 +70,7 @@ program driver
   !
   character(len=60)      :: task, csave
   logical                :: lsave(4)
-  integer                :: isave(46)
+  integer                :: isave(46), xindex
   real(dp)               :: f, r
   real(dp)               :: dsave(29)
   integer,  allocatable  :: nbd(:), iwa(:)
@@ -215,16 +215,21 @@ x(1) = -1d0
                  g(i+1)=r1
                  g(i)=g(i)-2d0*x(i)*r1
 20               continue
+
                  nfg = nfg+1
                  ! Write f on the wa matrix for later stopping condition
                  startg = isave(45) + mod(nfg, m)
                  startx = isave(46) + mod(nfg, m)
+                 xindex = 0
                  do i = startx, (startx + n - 1)
-                    wa(i) = x(i)
+                    xindex = xindex + 1
+                    wa(i) = x(xindex)
                  end do
                  
+                 xindex = 0
                  do i = startg, (startg + n - 1)
-                    wa(i) = g(i)
+                    xindex = xindex + 1
+                    wa(i) = g(xindex)
                  end do
                  
                  !        write (6,*) 'Current X for debugging ='

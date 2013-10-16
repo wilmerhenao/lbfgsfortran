@@ -796,17 +796,14 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ncols = min(nfg, m)
       if (ncols * nfree .gt. 0) then
-         write(*, *) 'ncols', ncols, 'nfree', nfree
          
          !Create allocatable matrices now that I have the dimensions
          ! matrix matGfree
          allocate(matGfree(nfree, ncols))
-         allocate(newd(ncols))
          allocate(newx(n))
          allocate(distx(n))
          allocate(freex(nfree))
          
-         newd = 0.0d0
          matGfree = 0.0d0
          indclose = 0         ! counts all of the vectors that are close enough
          do j = 1, ncols
@@ -819,7 +816,10 @@
                end do
             endif
          end do
+         allocate(newd(indclose))
+         newd = 0.0d0
          if(nfree * indclose .gt. 0) then
+            write(*, *) 'running qpspecial'
             call  qpspecial(nfree, indclose, matGfree, 100, freex, newd, normd)
             
             do i = 1, n
@@ -835,9 +835,9 @@
             end do
             
             mxdi = sqrt(dot_product(distx, distx))
-            if(mxdi < 0.00000000001d0 .and. normd < 0.00000000001d0) then
+            if(mxdi < 0.01d0 .and. normd < 0.01d0) then
                write(*,*) 'in the convex hull'
-               task = 'CONVERGENCE: ZERO GRADIENT IN CONVEX HULL'
+               task = 'CONVERGENCE: ZERO_GRADIENT IN CONVEX HULL'
             endif
          endif
       endif
