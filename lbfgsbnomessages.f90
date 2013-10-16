@@ -495,8 +495,8 @@
              cpu1,cpu2,cachyt,sbtime,lnscht,time1,time2, &
              gd,gdold,stp,stpmx,time
         double precision one,zero, normd, mxdi
-          double precision, dimension(n) :: newx, distx, freex  !n when full
-          double precision, allocatable :: newd(:)                !m when full
+          double precision, allocatable :: newx(:), distx(:), freex(:)  !n when full
+          double precision, allocatable :: newd(:)                      !m when full
           double precision, allocatable :: matGfree(:, :)
         parameter        (one=1.0d0,zero=0.0d0)
       
@@ -803,6 +803,10 @@
          ! matrix matGfree
          allocate(matGfree(nfree, ncols))
          allocate(newd(ncols))
+         allocate(newx(n))
+         allocate(distx(n))
+         allocate(freex(nfree))
+         
          newd = 0.0d0
          do i = 1, nfree
             do j = 1, ncols
