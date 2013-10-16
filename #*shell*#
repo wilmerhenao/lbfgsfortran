@@ -18086,4 +18086,29 @@ gfortran -g DriverRosenbrockp.f90 lbfgsbnomessages.f90 linpack.f blas.f timer.f 
  mnp =           10           5   2.0000000000000000     
  Value of f = (NEW CODE)   17386.443613743617     
  Iterate           18
-[yo@neonlight lbfgsfortran]$ git commit -a -m"all variables are now "
+[yo@neonlight lbfgsfortran]$ git commit -a -m"all variables that need to be allocatable are now allocatable"
+[master 097f0e2] all variables that need to be allocatable are now allocatable
+ 3 files changed, 18095 insertions(+), 2366 deletions(-)
+ rewrite #*shell*# (99%)
+ rewrite rosenbrockp (60%)
+[yo@neonlight lbfgsfortran]$ make
+gfortran -g DriverRosenbrockp.f90 lbfgsbnomessages.f90 linpack.f blas.f timer.f -llapack -lblas -o rosenbrockp
+[yo@neonlight lbfgsfortran]$ make
+gfortran -g DriverRosenbrockp.f90 lbfgsbnomessages.f90 linpack.f blas.f timer.f -llapack -lblas -o rosenbrockp
+DriverRosenbrockp.f90:303.48:
+
+subroutine checkifxbelongs(n, m, x, matX, j, nfv, closee)
+                                                1
+Error: Symbol 'nfv' at (1) has no IMPLICIT type
+lbfgsbnomessages.f90:499.18:
+
+          logical, closeenough
+                  1
+Error: Invalid character in name at (1)
+lbfgsbnomessages.f90:812.23:
+
+            closeenough = .false.
+                       1
+Error: Symbol 'closeenough' at (1) has no IMPLICIT type
+make: *** [lbfgsb_90_16] Error 1
+[yo@neonlight lbfgsfortran]$ 

@@ -298,9 +298,7 @@
              indx2(n), isave(23), nfg
         double precision f, factr, pgtol, &
              x(n), l(n), u(n), g(n), z(n), r(n), d(n), t(n), &
-             xp(n), &
-             wa(8*m), &
-             ws(n, m), wy(n, m), sy(m, m), ss(m, m), &
+             xp(n), wa(8*m), ws(n, m), wy(n, m), sy(m, m), ss(m, m), &
              wt(m, m), wn(2*m, 2*m), snd(2*m, 2*m), dsave(29), matG(n, m), &
              matX(n, m), taux
         
@@ -497,7 +495,8 @@
         double precision one,zero, normd, mxdi
           double precision, allocatable :: newx(:), distx(:), freex(:)  !n when full
           double precision, allocatable :: newd(:)                      !m when full
-          double precision, allocatable :: matGfree(:, :)
+          double precision, allocatable :: matGfree(:,:)
+          logical closeenough
         parameter        (one=1.0d0,zero=0.0d0)
       
         if (task .eq. 'START') then
@@ -530,36 +529,36 @@
            gdold  = zero
            dtd    = zero
          
-         !           for operation counts:
-         iter   = 0
-         nfgv   = 0
-         nseg   = 0
-         nintol = 0
-         nskip  = 0
-         nfree  = n
-         ifun   = 0
-!           for stopping tolerance:
-         tol = factr*epsmch
-
-!           for measuring running time:
-         cachyt = 0
-         sbtime = 0
-         lnscht = 0
- 
-!           'word' records the status of subspace solutions.
-         word = '---'
-         
-!           'info' records the termination information.
-         info = 0
-         
-         itfile = 8
-         if (iprint .ge. 1) then
-!                                open a summary file 'iterate.dat'
-            open (8, file = 'iterate.dat', status = 'unknown')
-         endif            
-
-!        Check the input arguments for errors.
-
+           !           for operation counts:
+           iter   = 0
+           nfgv   = 0
+           nseg   = 0
+           nintol = 0
+           nskip  = 0
+           nfree  = n
+           ifun   = 0
+           !           for stopping tolerance:
+           tol = factr*epsmch
+           
+           !           for measuring running time:
+           cachyt = 0
+           sbtime = 0
+           lnscht = 0
+           
+           !           'word' records the status of subspace solutions.
+           word = '---'
+           
+           !           'info' records the termination information.
+           info = 0
+           
+           itfile = 8
+           if (iprint .ge. 1) then
+              !                                open a summary file 'iterate.dat'
+              open (8, file = 'iterate.dat', status = 'unknown')
+           endif
+           
+           !        Check the input arguments for errors.
+           
          call errclb(n,m,factr,l,u,nbd,task,info,k)
          if (task(1:5) .eq. 'ERROR') then
             call prn3lb(n,x,f,task,iprint,info,itfile, &
@@ -808,16 +807,15 @@
          allocate(freex(nfree))
          
          newd = 0.0d0
-         do i = 1, nfree
-            do j = 1, ncols
-               matGfree(i, j) = 0.0d0
-            end do
-         end do
-         
-         do i = 1, nfree
-            do j = 1, n
-               matGfree(i,j) = matG(index(i), j)
-            end do
+         matGfree = 0.0d0
+         do j = 1, ncols
+            closeenough = .false.
+            call checkifxbelongs(n, m, x, matX, j, closeenough)
+            if (closeenough) then
+               do i = 1, nfree
+                  matGfree(i,j) = matG(index(i), j)
+               end do
+            endif
          end do
          
          call  qpspecial(nfree, ncols, matGfree, 100, freex, newd, normd)
