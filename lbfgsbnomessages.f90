@@ -45,7 +45,7 @@
 !                                                 
 !============================================================================= 
       subroutine setulb(n, m, x, l, u, nbd, f, g, factr, pgtol, wa, iwa, &
-           task, iprint, csave, lsave, isave, dsave)
+           task, iprint, csave, lsave, isave, dsave, taux, nfg)
         
       character*60     task, csave
       logical          lsave(4)
@@ -53,7 +53,7 @@
       double precision f, factr, pgtol, x(n), l(n), u(n), g(n), &
 !
 !-jlm-jn
-           wa(4*m*n + 5*n + 11*m*m + 8*m), dsave(29)
+           wa(4*m*n + 5*n + 11*m*m + 8*m), dsave(29), taux, nfg
  
 !     ************
 !
@@ -278,7 +278,7 @@
            wa(lwn),wa(lsnd),wa(lz),wa(lr),wa(ld),wa(lt),wa(lxp), &
            wa(lwa), &
            iwa(1),iwa(n+1),iwa(2*n+1),task,iprint, &
-           csave,lsave,isave(22),dsave,wa(lg), wa(lx))
+           csave,lsave,isave(22),dsave,wa(lg), wa(lx), taux, nfg)
 
       return
 
@@ -289,18 +289,19 @@
       subroutine mainlb(n, m, x, l, u, nbd, f, g, factr, pgtol, ws, wy, &
            sy, ss, wt, wn, snd, z, r, d, t, xp, wa, &
            index, iwhere, indx2, task, &
-           iprint, csave, lsave, isave, dsave, matG, matX)
+           iprint, csave, lsave, isave, dsave, matG, matX, taux, nfg)
         implicit none
         character*60     task, csave
         logical          lsave(4)
-        integer          n, m, iprint, nbd(n), index(n),iwhere(n), indx2(n), isave(23)
+        integer          n, m, iprint, nbd(n), index(n),iwhere(n), &
+             indx2(n), isave(23), nfg
         double precision f, factr, pgtol, &
              x(n), l(n), u(n), g(n), z(n), r(n), d(n), t(n), &
              xp(n), &
              wa(8*m), &
              ws(n, m), wy(n, m), sy(m, m), ss(m, m), &
              wt(m, m), wn(2*m, 2*m), snd(2*m, 2*m), dsave(29), matG(n, m), &
-             matX(n, m)
+             matX(n, m), taux
         
 !     ************
 !
@@ -495,7 +496,7 @@
         double precision one,zero, normd, mxdi
           double precision, dimension(n) :: newx, distx, freex
           double precision, dimension(m) :: newd
-          double precision, dimension(m, n) :: matGfree
+          double precision, allocatable(:,:) :: matGfree
         parameter        (one=1.0d0,zero=0.0d0)
       
         if (task .eq. 'START') then
@@ -790,43 +791,49 @@
       call lnsrlb(n,l,u,nbd,x,f,fold,gd,gdold,g,d,r,t,z,stp,dnorm, &
            dtd,xstep,stpmx,iter,ifun,iback,nfgv,info,task, &
            boxed,cnstnd,csave,isave(22),dsave(17))
-      if (col .gt. 1) then
-         do i = 1, n
-            newd(i) = 0
-         end do
-         
-         !Create matrix matGfree
-         do i = 1, m
-            do j = 1, n
-               matGfree(i, j) = 0.0d0
-            end do
-         end do
-         
-         do i = 1, nfree
-            do j = 1, n
-               matGfree(i,j) = matG(index(i), j)
-            end do
-         end do
-         
-         call  qpspecial(nfree, col, matGfree, 100, freex, newd, normd)
-         
-         do i = 1, n
-            newx(i) = x(i)
-         end do
 
-         do i = 1, nfree
-            newx(index(i)) = freex(i)
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      
+      do i = 1, n
+         newd(i) = 0
+      end do
+
+      !Create matrix matGfree
+      do i = 1, m
+         do j = 1, n
+            matGfree(i, j) = 0.0d0
          end do
-         
-         do i = 1, n            
-            distx(i) = newx(i) - x(i)
+      end do
+
+      do i = 1, nfree
+         do j = 1, n
+            matGfree(i,j) = matG(index(i), j)
          end do
-         mxdi = sqrt(dot_product(distx, distx))
-         if(mxdi < 0.00000000001d0 .and. normd < 0.00000000001d0) then
-            write(*,*) 'in the convex hull'
-            task = 'CONVERGENCE: ZERO GRADIENT IN CONVEX HULL'
-         endif
+      end do
+
+      call  qpspecial(nfree, col, matGfree, 100, freex, newd, normd)
+
+      do i = 1, n
+         newx(i) = x(i)
+      end do
+
+      do i = 1, nfree
+         newx(index(i)) = freex(i)
+      end do
+
+      do i = 1, n            
+         distx(i) = newx(i) - x(i)
+      end do
+      mxdi = sqrt(dot_product(distx, distx))
+      if(mxdi < 0.00000000001d0 .and. normd < 0.00000000001d0) then
+         write(*,*) 'in the convex hull'
+         task = 'CONVERGENCE: ZERO GRADIENT IN CONVEX HULL'
       endif
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
       if (info .ne. 0 .or. iback .ge. 50000) then
 !          restore the previous iterate.
          call dcopy(n,t,1,x,1)

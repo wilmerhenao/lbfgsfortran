@@ -154,7 +154,7 @@ x(1) = -1d0
         !     This is the call to the L-BFGS-B code.
 
         call setulb(n,m,x,l,u,nbd,f,g,factr,pgtol,wa,iwa, &
-             task,iprint, csave,lsave,isave,dsave,taux)
+             task,iprint, csave,lsave,isave,dsave,taux, nfg)
         if (task(1:2) .eq. 'FG') then
 
                  !        the minimization routine has returned to request the
