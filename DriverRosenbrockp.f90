@@ -93,7 +93,8 @@ program driver
 
   allocate ( nbd(n), x(n), l(n), u(n), g(n) )
   allocate ( iwa(3*n) )
-  allocate ( wa(4*m*n + 5*n + 11*m*m + 8*m) )
+  allocate ( wa(2*m*n + 5*n + 11*m*m + 8*m + 2*jmax*n) )
+  wa = 0.0d0
   
   !     This time-controlled driver shows that it is possible to terminate
   !     a run by elapsed CPU time, and yet be able to print all desired
@@ -154,7 +155,7 @@ x(1) = -1d0
         !     This is the call to the L-BFGS-B code.
 
         call setulb(n,m,x,l,u,nbd,f,g,factr,pgtol,wa,iwa, &
-             task,iprint, csave,lsave,isave,dsave,taux, nfg)
+             task,iprint, csave,lsave,isave,dsave,taux, nfg, jmax)
         if (task(1:2) .eq. 'FG') then
 
                  !        the minimization routine has returned to request the
@@ -218,8 +219,8 @@ x(1) = -1d0
 
                  nfg = nfg + 1
                  ! Write f on the wa matrix for later stopping condition
-                 startx = isave(46) + mod(nfg, m)
-                 startg = isave(45) + mod(nfg, m)
+                 startx = isave(46) + (mod(nfg, jmax) - 1d0) * n
+                 startg = isave(45) + (mod(nfg, jmax) - 1d0) * n
                  xindex = 0
                  do i = startx, (startx + n - 1)
                     xindex = xindex + 1
@@ -231,8 +232,8 @@ x(1) = -1d0
                     xindex = xindex + 1
                     wa(i) = g(xindex)
                  end do
-                 write(*,*) 'x', x
-                 write(*, *) 'wa', wa(isave(46):(isave(46)+(m*n)))
+                 !write(*,*) 'x', x
+                 !write(*, *) 'wa', wa(isave(46):(isave(46)+(jmax*n)-1))
                  
                  !        write (6,*) 'Current X for debugging ='
                  !                 write (6,'((1x,1p, 6(1x,d11.4)))') (x(i),i = 1,n)

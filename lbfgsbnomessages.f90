@@ -45,16 +45,16 @@
 !                                                 
 !============================================================================= 
       subroutine setulb(n, m, x, l, u, nbd, f, g, factr, pgtol, wa, iwa, &
-           task, iprint, csave, lsave, isave, dsave, taux, nfg)
+           task, iprint, csave, lsave, isave, dsave, taux, nfg, jmax)
         
       character*60     task, csave
       logical          lsave(4)
       integer          n, m, iprint, nbd(n), iwa(3*n), isave(46), &
-           nfg
+           nfg, jmax
       double precision f, factr, pgtol, x(n), l(n), u(n), g(n), &
 !
 !-jlm-jn
-           wa(4*m*n + 5*n + 11*m*m + 8*m), dsave(29), taux
+           wa(2*m*n + 5*n + 11*m*m + 8*m + 2*jmax*n), dsave(29), taux
  
 !     ************
 !
@@ -255,8 +255,8 @@
          isave(14) = isave(13) + n          ! wt      n
          isave(15) = isave(14) + n          ! wxp     n
          isave(16) = isave(15) + n          ! wa      8*m
-         isave(45) = isave(16) + 8*m        ! ----    m*n
-         isave(46) = isave(45) + m*n        ! ----    m*n
+         isave(45) = isave(16) + 8*m        ! ----    jmax*n
+         isave(46) = isave(45) + jmax*n     ! ----    jmax*n
       endif
       lws  = isave(4)
       lwy  = isave(5)
@@ -277,10 +277,10 @@
       call mainlb(n,m,x,l,u,nbd,f,g,factr,pgtol, &
            wa(lws),wa(lwy),wa(lsy),wa(lss), wa(lwt), &
            wa(lwn),wa(lsnd),wa(lz),wa(lr),wa(ld),wa(lt),wa(lxp), &
-           wa(lwa), &
-           iwa(1),iwa(n+1),iwa(2*n+1),task,iprint, &
-           csave,lsave,isave(22),dsave,wa(lg), wa(lx), taux, nfg)
-
+           wa(lwa), iwa(1),iwa(n+1),iwa(2*n+1),task,iprint, &
+           csave,lsave,isave(22),dsave,wa(lg), wa(lx), taux, nfg, &
+           jmax)
+      
       return
 
       end
@@ -290,17 +290,17 @@
       subroutine mainlb(n, m, x, l, u, nbd, f, g, factr, pgtol, ws, wy, &
            sy, ss, wt, wn, snd, z, r, d, t, xp, wa, &
            index, iwhere, indx2, task, &
-           iprint, csave, lsave, isave, dsave, matG, matX, taux, nfg)
+           iprint, csave, lsave, isave, dsave, matG, matX, taux, nfg, jmax)
         implicit none
         character*60     task, csave
         logical          lsave(4)
         integer          n, m, iprint, nbd(n), index(n),iwhere(n), &
-             indx2(n), isave(23), nfg
+             indx2(n), isave(23), nfg, jmax
         double precision f, factr, pgtol, &
              x(n), l(n), u(n), g(n), z(n), r(n), d(n), t(n), &
              xp(n), wa(8*m), ws(n, m), wy(n, m), sy(m, m), ss(m, m), &
-             wt(m, m), wn(2*m, 2*m), snd(2*m, 2*m), dsave(29), matG(n, m), &
-             matX(n, m), taux
+             wt(m, m), wn(2*m, 2*m), snd(2*m, 2*m), dsave(29), matG(n, jmax), &
+             matX(n, jmax), taux
         
 !     ************
 !
@@ -794,7 +794,7 @@
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       
-      ncols = min(nfg, m)
+      ncols = min(nfg, jmax)
       if (ncols * nfree .gt. 0) then
          
          !Create allocatable matrices now that I have the dimensions
@@ -814,14 +814,17 @@
             call checkifxbelongs(n, ncols, x, matX, j, closeenough, taux)
             if (closeenough) then
                indclose = indclose + 1
-               if (indclose > 3) then
-                  write(*, *) 'x', x, 'matX', matX
+               write(*, *) 'one in'
+               if (indclose .eq. 1) then
+               !   write(*, *) 'x', x, 'matX', matX
+                  write(*,*) 'indclose', indclose
                endif
                do i = 1, nfree
                   matGfree(i,indclose) = matG(index(i), j)
                enddo
             endif
          enddo
+         
          allocate(newd(indclose))
          if(nfree * indclose .gt. 0) then
             write(*, *) 'running qpspecial'
