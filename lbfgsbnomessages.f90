@@ -792,8 +792,8 @@
            dtd,xstep,stpmx,iter,ifun,iback,nfgv,info,task, &
            boxed,cnstnd,csave,isave(22),dsave(17))
 
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      
       ncols = min(nfg, m)
       if (ncols * nfree .gt. 0) then
          
@@ -805,7 +805,7 @@
          allocate(freex(nfree))
          
          matGfree = 0.0d0
-         indclose = 0         ! counts all of the vectors that are close enough
+         indclose = 0         !counts all of the vectors that are close enough
          do j = 1, ncols
             closeenough = .false.
             call checkifxbelongs(n, m, x, matX, j, closeenough, taux)
@@ -813,14 +813,13 @@
                indclose = indclose + 1
                do i = 1, nfree
                   matGfree(i,indclose) = matG(index(i), j)
-               end do
+               enddo
             endif
-         end do
+         enddo
          allocate(newd(indclose))
-         newd = 0.0d0
          if(nfree * indclose .gt. 0) then
             write(*, *) 'running qpspecial'
-            call  qpspecial(nfree, indclose, matGfree, 100, freex, newd, normd)
+            call  qpspecial(nfree, indclose, matGfree, 100, freex, normd)
             
             do i = 1, n
                newx(i) = x(i)
@@ -835,6 +834,7 @@
             end do
             
             mxdi = sqrt(dot_product(distx, distx))
+            write(*,*) 'mxdi', mxdi, 'normd', normd
             if(mxdi < 0.01d0 .and. normd < 0.01d0) then
                write(*,*) 'in the convex hull'
                task = 'CONVERGENCE: ZERO_GRADIENT IN CONVEX HULL'
@@ -4432,12 +4432,11 @@
       
 !====================== The end of linesearchstep ==============================
 
-subroutine qpspecial(m, n, G, maxit, newx, newd, normd)
+subroutine qpspecial(m, n, G, maxit, newd, normd)
 implicit none
 integer  ::          m, n, maxit
 double precision, dimension(m, n) :: G
-double precision, dimension(m) :: newx
-double precision, dimension(n) :: newd
+double precision, dimension(m) :: newd
 double precision :: normd
 
 !  This is a function
@@ -4683,12 +4682,8 @@ q = dot_product(d,d)
 write(*, *) x
 write(*,*) 'done qpspecial'
 
-do 7427 i = 1, m
-   newx(i) = x(i)
-7427 continue
-
 do 7428 i = 1, n
-   newd(i) = d(i)
+   newd(i) = d(i) ! this is the final solution that we need
 7428 continue
 
 normd = sqrt(q(1,1))
@@ -4728,7 +4723,7 @@ subroutine checkifxbelongs(n, m, x, matX, j, closee, taux)
   enddo
   
   sumd = sqrt(sumd)
-  
+  write(*, *) 'sumd', sumd
   if(sumd < taux) then
      closee = .true.
   endif
