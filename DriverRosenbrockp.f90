@@ -63,7 +63,7 @@ program driver
   !     We specify the dimension n of the sample problem and the number
   !        m of limited memory corrections stored. 
   
-  integer,  parameter    :: iprint = -10, numargs = 0
+  integer,  parameter    :: iprint = -10, numargs = 0, jmax = 10d0
   integer,  parameter    :: dp = kind(1.0d0)
   real(dp), parameter    :: factr  = 0.0d0, pgtol  = 0.0d0, &
        tlimit = 1000.0d0, taux = 1.0d-4
@@ -216,10 +216,10 @@ x(1) = -1d0
                  g(i)=g(i)-2d0*x(i)*r1
 20               continue
 
-                 nfg = nfg+1
+                 nfg = nfg + 1
                  ! Write f on the wa matrix for later stopping condition
-                 startg = isave(45) + mod(nfg, m)
                  startx = isave(46) + mod(nfg, m)
+                 startg = isave(45) + mod(nfg, m)
                  xindex = 0
                  do i = startx, (startx + n - 1)
                     xindex = xindex + 1
@@ -231,6 +231,8 @@ x(1) = -1d0
                     xindex = xindex + 1
                     wa(i) = g(xindex)
                  end do
+                 write(*,*) 'x', x
+                 write(*, *) 'wa', wa(isave(46):(isave(46)+(m*n)))
                  
                  !        write (6,*) 'Current X for debugging ='
                  !                 write (6,'((1x,1p, 6(1x,d11.4)))') (x(i),i = 1,n)

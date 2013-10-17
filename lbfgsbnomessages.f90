@@ -803,14 +803,20 @@
          allocate(newx(n))
          allocate(distx(n))
          allocate(freex(nfree))
-         
+         if(5 .eq. ncols) then
+            write(*, *) 'x', x, 'matX1', matX(:,1), 'matX2', matX(:, 2), &
+                 'matX4', matX(:, 4), 'matX5', matX(:, 5)
+         endif
          matGfree = 0.0d0
          indclose = 0         !counts all of the vectors that are close enough
          do j = 1, ncols
             closeenough = .false.
-            call checkifxbelongs(n, m, x, matX, j, closeenough, taux)
+            call checkifxbelongs(n, ncols, x, matX, j, closeenough, taux)
             if (closeenough) then
                indclose = indclose + 1
+               if (indclose > 3) then
+                  write(*, *) 'x', x, 'matX', matX
+               endif
                do i = 1, nfree
                   matGfree(i,indclose) = matG(index(i), j)
                enddo
@@ -4723,7 +4729,7 @@ subroutine checkifxbelongs(n, m, x, matX, j, closee, taux)
   enddo
   
   sumd = sqrt(sumd)
-  write(*, *) 'sumd', sumd
+  !write(*, *) 'sumd', sumd
   if(sumd < taux) then
      closee = .true.
   endif
