@@ -495,10 +495,13 @@
         double precision one,zero, normd, mxdi
           double precision, allocatable :: newx(:), distx(:), freex(:)  !n when full
           double precision, allocatable :: newd(:)                      !m when full
-          double precision, allocatable :: matGfree(:,:)
+          double precision, allocatable :: matGfree(:,:), matGfreefit(:, :)
+          integer, dimension(jmax) :: qpposrecord
           logical closeenough
         parameter        (one=1.0d0,zero=0.0d0)
-      
+        
+        ! debugging
+        
         if (task .eq. 'START') then
            
            epsmch = epsilon(one)
@@ -786,14 +789,13 @@
       do 40 i = 1, n
          d(i) = z(i) - x(i)
   40  continue
-      call timer(cpu1) 
+      call timer(cpu1)
  666  continue
       call lnsrlb(n,l,u,nbd,x,f,fold,gd,gdold,g,d,r,t,z,stp,dnorm, &
            dtd,xstep,stpmx,iter,ifun,iback,nfgv,info,task, &
            boxed,cnstnd,csave,isave(22),dsave(17))
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
       ncols = min(nfg, jmax)
       if (ncols * nfree .gt. 0) then
          
@@ -802,11 +804,7 @@
          allocate(matGfree(nfree, ncols))
          allocate(newx(n))
          allocate(distx(n))
-         allocate(freex(nfree))
-         if(5 .eq. ncols) then
-            write(*, *) 'x', x, 'matX1', matX(:,1), 'matX2', matX(:, 2), &
-                 'matX4', matX(:, 4), 'matX5', matX(:, 5)
-         endif
+         qpposrecord = 0
          matGfree = 0.0d0
          indclose = 0         !counts all of the vectors that are close enough
          do j = 1, ncols
@@ -814,11 +812,8 @@
             call checkifxbelongs(n, ncols, x, matX, j, closeenough, taux)
             if (closeenough) then
                indclose = indclose + 1
-               write(*, *) 'one in'
-               if (indclose .eq. 1) then
-               !   write(*, *) 'x', x, 'matX', matX
-                  write(*,*) 'indclose', indclose
-               endif
+               qpposrecord(indclose) = j  !qpposrecord keeps a registry of the
+                                          !dimension being analysed in qpspecial
                do i = 1, nfree
                   matGfree(i,indclose) = matG(index(i), j)
                enddo
@@ -826,16 +821,23 @@
          enddo
          
          allocate(newd(indclose))
-         if(nfree * indclose .gt. 0) then
-            write(*, *) 'running qpspecial'
-            call  qpspecial(nfree, indclose, matGfree, 100, freex, normd)
-            
+         if((nfree * indclose .gt. 0) .and. (indclose .gt. 1)) then
+            allocate(matGfreefit(nfree, indclose))
+            matGfreefit = matGfree(:, 1:indclose)
+            allocate(freex(indclose))
+            freex = 1/indclose
+            call  qpspecial(nfree, indclose, matGfreefit, 100, freex, normd)
             do i = 1, n
                newx(i) = x(i)
             end do
             
             do i = 1, nfree
-               newx(index(i)) = freex(i)
+               newx(index(i)) = 0d0
+               
+               do j = 1, indclose
+                  newx(index(i)) = &
+                  newx(index(i)) + freex(j) * matX(index(i), qpposrecord(j))
+               enddo
             end do
             
             do i = 1, n            
@@ -843,7 +845,6 @@
             end do
             
             mxdi = sqrt(dot_product(distx, distx))
-            write(*,*) 'mxdi', mxdi, 'normd', normd
             if(mxdi < 0.01d0 .and. normd < 0.01d0) then
                write(*,*) 'in the convex hull'
                task = 'CONVERGENCE: ZERO_GRADIENT IN CONVEX HULL'
@@ -4441,11 +4442,11 @@
       
 !====================== The end of linesearchstep ==============================
 
-subroutine qpspecial(m, n, G, maxit, newd, normd)
+subroutine qpspecial(m, n, G, maxit, newx, normd)
 implicit none
 integer  ::          m, n, maxit
 double precision, dimension(m, n) :: G
-double precision, dimension(m) :: newd
+double precision, dimension(n) :: newx
 double precision :: normd
 
 !  This is a function
@@ -4528,7 +4529,7 @@ integer, dimension(n) :: ipiv
 character        :: uplo
 double precision, external :: DPOTRF 
 external DGETRF, DGETRI
-
+double precision, dimension(m) :: newd
 double precision, external :: norminf
 
 uplo = 'U'
@@ -4691,9 +4692,13 @@ q = dot_product(d,d)
 write(*, *) x
 write(*,*) 'done qpspecial'
 
-do 7428 i = 1, n
+do 7428 i = 1, m
    newd(i) = d(i) ! this is the final solution that we need
 7428 continue
+   
+do i = 1, n
+   newx(i) = x(i)
+enddo
 
 normd = sqrt(q(1,1))
 
@@ -4724,6 +4729,8 @@ subroutine checkifxbelongs(n, m, x, matX, j, closee, taux)
   logical closee
   double precision :: sumd=0.0d0, taux
   integer i
+  ! debugging
+  sumd = 0d0
   
   ! calculate the distance from x to the corresponding j vector
   

@@ -45,15 +45,15 @@
 !     **************
 
 program driver
-
+  
   !     This time-controlled driver shows that it is possible to terminate
   !     a run by elapsed CPU time, and yet be able to print all desired
   !     information. This driver also illustrates the use of two
   !     stopping criteria that may be used in conjunction with a limit
   !     on execution time.
-
+  
   implicit none
-
+  
   !     We specify a limit on the CPU time (tlimit = 10 seconds)
   !
   !     We suppress the default output (iprint = -1). The user could 
@@ -66,7 +66,7 @@ program driver
   integer,  parameter    :: iprint = -10, numargs = 0, jmax = 10d0
   integer,  parameter    :: dp = kind(1.0d0)
   real(dp), parameter    :: factr  = 0.0d0, pgtol  = 0.0d0, &
-       tlimit = 1000.0d0, taux = 1.0d-4
+       tlimit = 1000.0d0, taux = 1.0d-3
   !
   character(len=60)      :: task, csave
   logical                :: lsave(4)
@@ -219,8 +219,8 @@ x(1) = -1d0
 
                  nfg = nfg + 1
                  ! Write f on the wa matrix for later stopping condition
-                 startx = isave(46) + (mod(nfg, jmax) - 1d0) * n
-                 startg = isave(45) + (mod(nfg, jmax) - 1d0) * n
+                 startx = isave(46) + mod(nfg - 1, jmax) * n
+                 startg = isave(45) + mod(nfg - 1, jmax) * n
                  xindex = 0
                  do i = startx, (startx + n - 1)
                     xindex = xindex + 1
