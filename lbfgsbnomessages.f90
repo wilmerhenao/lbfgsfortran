@@ -481,7 +481,7 @@
 !
 !
 !     ************
- 
+        
         logical          prjctd,cnstnd,boxed,updatd,wrk
         character*3      word
         integer          i,j,k,nintol,itfile,iback,nskip, &
@@ -656,11 +656,11 @@
          write (6,1002) iter,f,sbgnrm
          write (itfile,1003) iter,nfgv,sbgnrm,f
       endif
-      if (sbgnrm .le. pgtol) then
+!      if (sbgnrm .le. pgtol) then
 !                                terminate the algorithm.
-         task = 'CONVERGENCE: NORM_OF_PROJECTED_GRADIENT_<=_PGTOL'
-         goto 999
-      endif 
+!         task = 'CONVERGENCE: NORM_OF_PROJECTED_GRADIENT_<=_PGTOL'
+!         goto 999
+!      endif 
  
 ! ----------------- the beginning of the loop --------------------------
  
@@ -909,16 +909,16 @@
 
 !     Test for termination.
 
-      if (sbgnrm .le. pgtol) then
+!      if (sbgnrm .le. pgtol) then
 !                                terminate the algorithm.
-         task = 'CONVERGENCE: NORM_OF_PROJECTED_GRADIENT_<=_PGTOL'
-         goto 999
-      endif 
+!         task = 'CONVERGENCE: NORM_OF_PROJECTED_GRADIENT_<=_PGTOL'
+!         goto 999
+!      endif 
 
       ddum = max(abs(fold), abs(f), one)
-      if ((fold - f) .le. tol*ddum) then
+!      if ((fold - f) .le. tol*ddum) then
 !                                        terminate the algorithm.
-         task = 'CONVERGENCE: REL_REDUCTION_OF_F_<=_FACTR*EPSMCH'
+!         task = 'CONVERGENCE: REL_REDUCTION_OF_F_<=_FACTR*EPSMCH'
 !         write (6, *) task
 !         write (*,'(A, F8.6)') 'tol is = ', tol
 !         write (*,'(A, F8.6)') 'ddum is = ', ddum
@@ -926,10 +926,10 @@
 !         write (6,'((1x,1p, 6(1x,d11.4)))') (x(i),i = 1,n)
 !         write (6,*) 'Final derivative vector='
 !         write (6,'((1x,1p, 6(1x,d11.4)))') (g(i),i = 1,n)
-         if (iback .ge. 10) info = -5
+!         if (iback .ge. 10) info = -5
 !           i.e., to issue a warning if iback>10 in the line search.
-         goto 999
-      endif 
+!         goto 999
+!      endif 
 
 !     Compute d=newx-oldx, r=newg-oldg, rr=y'y and dr=y's.
  
