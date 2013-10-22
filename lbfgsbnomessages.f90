@@ -484,6 +484,7 @@
         
         logical          prjctd,cnstnd,boxed,updatd,wrk
         character*3      word
+        character*70     nfreelit, normdlit
         integer          i,j,k,nintol,itfile,iback,nskip, &
              head,col,iter,itail,iupdat, &
              nseg,nfgv,info,ifun, &
@@ -846,8 +847,9 @@
             
             mxdi = sqrt(dot_product(distx, distx))
             if(mxdi < 0.01d0 .and. normd < 0.01d0) then
-               write(*,*) 'in the convex hull'
-               task = 'CONVERGENCE: ZERO_GRADIENT IN CONVEX HULL'
+               write(nfreelit,'(I5)') nfree
+               write(*, *) 'normd', normd
+               task = 'CONVERGENCE: ZERO_GRADIENT IN CONVEX HULL, nfree = ' // nfreelit
             endif
          endif
       endif
