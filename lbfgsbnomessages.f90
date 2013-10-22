@@ -54,7 +54,7 @@
       double precision f, factr, pgtol, x(n), l(n), u(n), g(n), &
 !
 !-jlm-jn
-           wa(2*m*n + 5*n + 11*m*m + 8*m + 2*jmax*n), dsave(29), taux
+           wa(2*m*n + 5*n + 11*m*m + 8*m + 2*jmax*n), dsave(30), taux
  
 !     ************
 !
@@ -299,7 +299,7 @@
         double precision f, factr, pgtol, &
              x(n), l(n), u(n), g(n), z(n), r(n), d(n), t(n), &
              xp(n), wa(8*m), ws(n, m), wy(n, m), sy(m, m), ss(m, m), &
-             wt(m, m), wn(2*m, 2*m), snd(2*m, 2*m), dsave(29), matG(n, jmax), &
+             wt(m, m), wn(2*m, 2*m), snd(2*m, 2*m), dsave(30), matG(n, jmax), &
              matX(n, jmax), taux
         
 !     ************
@@ -869,7 +869,7 @@
                   
                enddo
                if(boundedvariables) then
-                  isave(26) = normd
+                  dsave(30) = normd
                   task = 'CONVERGENCE: ZERO_GRAD_IN_CONV_ HULL, nfree = ' // nfreelit // ''
                endif
             endif
