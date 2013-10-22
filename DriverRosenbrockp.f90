@@ -68,9 +68,9 @@ program driver
   real(dp), parameter    :: factr  = 0.0d0, pgtol  = 0.0d0, &
        tlimit = 1000.0d0, taux = 1.0d-3
   !
-  character(len=60)      :: task, csave
+  character(len=120)      :: task, csave
   logical                :: lsave(4)
-  integer                :: isave(46), xindex
+  integer                :: isave(47), xindex
   real(dp)               :: f, r
   real(dp)               :: dsave(29)
   integer,  allocatable  :: nbd(:), iwa(:)
@@ -116,7 +116,7 @@ program driver
      u(i)=1.0d2
 10   continue
      
-
+     
      !     Next set bounds on the even-numbered variables.
      
      do 12 i=2, n,2
@@ -292,7 +292,7 @@ x(1) = -1d0
      
      !     If task is neither FG nor NEW_X we terminate execution.
      call timer(time2)
-     write (*,*) 'final results rosenbrock (new) run:', m, n, p, isave(30), isave(34), f, dsave(13), time2-time1, task
+     write (*,*) 'final results rosenbrock (new) run:', m, n, p, isave(30), isave(34), f, isave(47), dsave(13), time2-time1, task
      
      write (6,*) task  
      write (6,*) 'Final X='

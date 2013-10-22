@@ -49,7 +49,7 @@
         
       character*60     task, csave
       logical          lsave(4)
-      integer          n, m, iprint, nbd(n), iwa(3*n), isave(46), &
+      integer          n, m, iprint, nbd(n), iwa(3*n), isave(47), &
            nfg, jmax
       double precision f, factr, pgtol, x(n), l(n), u(n), g(n), &
 !
@@ -295,7 +295,7 @@
         character*60     task, csave
         logical          lsave(4)
         integer          n, m, iprint, nbd(n), index(n),iwhere(n), &
-             indx2(n), isave(23), nfg, jmax
+             indx2(n), isave(26), nfg, jmax
         double precision f, factr, pgtol, &
              x(n), l(n), u(n), g(n), z(n), r(n), d(n), t(n), &
              xp(n), wa(8*m), ws(n, m), wy(n, m), sy(m, m), ss(m, m), &
@@ -500,6 +500,8 @@
           integer, dimension(jmax) :: qpposrecord
           logical closeenough
         parameter        (one=1.0d0,zero=0.0d0)
+          logical boundedvariables
+          boundedvariables = .false.
         
         ! debugging
         
@@ -814,7 +816,7 @@
             if (closeenough) then
                indclose = indclose + 1
                qpposrecord(indclose) = j  !qpposrecord keeps a registry of the
-                                          !dimension being analysed in qpspecial
+               !dimension being analysed in qpspecial
                do i = 1, nfree
                   matGfree(i,indclose) = matG(index(i), j)
                enddo
@@ -837,7 +839,7 @@
                
                do j = 1, indclose
                   newx(index(i)) = &
-                  newx(index(i)) + freex(j) * matX(index(i), qpposrecord(j))
+                       newx(index(i)) + freex(j) * matX(index(i), qpposrecord(j))
                enddo
             end do
             
@@ -846,14 +848,40 @@
             end do
             
             mxdi = sqrt(dot_product(distx, distx))
-            if(mxdi < 0.01d0 .and. normd < 0.01d0) then
+            if(mxdi < 10d0 .and. normd < 0.01d0) then
                write(nfreelit,'(I5)') nfree
-               write(*, *) 'normd', normd
-               task = 'CONVERGENCE: ZERO_GRADIENT IN CONVEX HULL, nfree = ' // nfreelit
+               
+               do i = (nfree + 1), n
+                  !write(*, *) 'index', index(i), 'gindex', g(index(i)), x(index(i)), l(index(i)), u(index(i))
+                  boundedvariables = .true.
+                  
+                  if (abs(x(index(i)) - l(index(i))) < 1d-5) then
+                     if (g(index(i)) .lt. 0.0d0) then
+                        boundedvariables = .false.
+                     endif
+                  endif
+                  
+                  if (abs(x(index(i)) - u(index(i))) < 1d-5) then
+                     if (g(index(i)) .gt. 0.0d0) then
+                        boundedvariables = .false.
+                     endif
+                  endif
+                  
+               enddo
+               if(boundedvariables) then
+                  isave(26) = normd
+                  task = 'CONVERGENCE: ZERO_GRAD_IN_CONV_ HULL, nfree = ' // nfreelit // ''
+               endif
             endif
+            deallocate(matGfreefit)
+            deallocate(freex)
          endif
+      deallocate(matGfree)
+      deallocate(newx)
+      deallocate(distx)
+      deallocate(newd)
       endif
-
+      
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       if (info .ne. 0 .or. iback .ge. 50000) then
