@@ -126,10 +126,20 @@ program driver
 12      continue
         
         !     We now define the starting point.
-x(1) = -1d0
+
+do i=1, n
+   x(i) = (u(i) + l(i)) / 2.0d0
+enddo
+
+x(1) = x(1) - 1d0
         do 14 i=2, n
-           x(i)=1-2d0**(1-i)
-14         continue
+           x(i)=x(i) - (1-2d0**(1-i))
+14         continue 
+
+           do 1454 i=1, n
+              x(i)=3.0d0
+1454            continue
+
 !        x(1) = 0.5d0
 !x(2) = 0.6d0
 !x(3) = 0.7d0
@@ -156,6 +166,7 @@ x(1) = -1d0
 
         call setulb(n,m,x,l,u,nbd,f,g,factr,pgtol,wa,iwa, &
              task,iprint, csave,lsave,isave,dsave,taux, nfg, jmax)
+        write (*,*) 'partial results iteration, f:', isave(30), f
         if (task(1:2) .eq. 'FG') then
 
                  !        the minimization routine has returned to request the

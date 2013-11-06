@@ -33,7 +33,7 @@
 !
 !
 !            J. Nocedal  Department of Electrical Engineering and
-!                        Computer Science.
+!                        Computer Science. 
 !                        Northwestern University. Evanston, IL. USA
 !
 !
@@ -4605,7 +4605,7 @@ do 2122 k = 1, maxit
    mu = -sum(r3)/n ! current mu
    if(mu .lt. kmu) then
       if(rs .lt. krs) then
-         write(*,*) 'converged and jumping out'
+         !write(*,*) 'converged and jumping out'
          goto 9921
       end if
    end if
@@ -4719,8 +4719,8 @@ x = max(x, 0d0)
 x = x/sum(x)
 d = matmul(G, x)
 q = dot_product(d,d)
-write(*, *) x
-write(*,*) 'done qpspecial'
+!write(*, *) x
+!write(*,*) 'done qpspecial'
 
 do 7428 i = 1, m
    newd(i) = d(i) ! this is the final solution that we need
