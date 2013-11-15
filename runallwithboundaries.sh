@@ -24,7 +24,7 @@ for n in 1000 100000 1000000 10000000
       for m in 10
       do
 	  echo $m $n $p
-	  ./rosenbrockp $m $n $p
+	  ~/Documents/thesis/lbfgsfortran/./rosenbrockp $m $n $p
 	  #~/Documents/thesis/Lbfgsb.3.0/./x.lbfgsb_90_3_inputs $m $n $p
       done
   done
