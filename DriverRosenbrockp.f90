@@ -166,7 +166,7 @@ x(1) = x(1) - 1d0
 
         call setulb(n,m,x,l,u,nbd,f,g,factr,pgtol,wa,iwa, &
              task,iprint, csave,lsave,isave,dsave,taux, nfg, jmax)
-        write (*,*) 'partial results iteration, f:', isave(30), f
+        !write (*,*) 'partial results iteration, f:', isave(30), f
         if (task(1:2) .eq. 'FG') then
 
                  !        the minimization routine has returned to request the
@@ -259,8 +259,8 @@ x(1) = x(1) - 1d0
            
            if (task(1:5) .eq. 'NEW_X') then
               ! THE ONLY STOPPING CONDITION THAT WE ARE GOING TO USE
-              if (isave(30) .eq. 1000) &
-                   task= 'STOP: TOTAL NUMBER OF ITERATIONS REACHED 1000'
+              if (isave(30) .eq. 10000) &
+                   task= 'STOP: TOTAL NUMBER OF ITERATIONS REACHED 100000'
               
               !        the minimization routine has returned with a new iterate.
               !        The time limit has not been reached, and we test whether
@@ -306,10 +306,10 @@ x(1) = x(1) - 1d0
      write (*,*) 'final results rosenbrock (new) run:', m, n, p, isave(30), isave(34), f, dsave(30), dsave(13), time2-time1, task
      
      write (6,*) task  
-     write (6,*) 'Final X='
-     write (6,'((1x,1p, 6(1x,d11.4)))') (x(i),i = 1,n)
-     write (6,*) 'Final G='
-     write (6,'((1x,1p, 6(1x,d11.4)))') (g(i),i = 1,n)
+     !write (6,*) 'Final X='
+     !write (6,'((1x,1p, 6(1x,d11.4)))') (x(i),i = 1,n)
+     !write (6,*) 'Final G='
+     !write (6,'((1x,1p, 6(1x,d11.4)))') (g(i),i = 1,n)
      write (*,*) 'mnp = ', m, n, p
      write (*,*) 'Value of f = (NEW CODE)', f
      write (*,*) 'Iterate ', isave(30)
