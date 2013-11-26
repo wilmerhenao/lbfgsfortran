@@ -1,7 +1,7 @@
 FC = gfortran
 
 #FFLAGS = -O -Wall -fbounds-check -g -Wno-uninitialized 
-FFLAGS = -g
+FFLAGS = -g -pg
 
 DRIVER1_90 = DriverRosenbrockNonSmooth.f90
 DRIVER2_90 = Driveryurirosen_ns1.f90

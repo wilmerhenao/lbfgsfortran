@@ -849,7 +849,7 @@
             
             mxdi = sqrt(dot_product(distx, distx))
             if(mxdi < 10d0 .and. normd < 0.01d0) then
-               write(nfreelit,'(I5)') nfree
+               write(nfreelit,'(I10)') nfree
                
                do i = (nfree + 1), n
                   !write(*, *) 'index', index(i), 'gindex', g(index(i)), x(index(i)), l(index(i)), u(index(i))
@@ -4748,8 +4748,8 @@ do 1100 i = 1, n
    normvalue = max(normvalue, normvaluetemp)
 1100  continue
 end function norminf
-! ----------------------- end of norminf ------------------------------------
 
+! ----------------------- end of norminf ------------------------------------
 
 subroutine checkifxbelongs(n, m, x, matX, j, closee, taux)
   implicit none
@@ -4760,20 +4760,14 @@ subroutine checkifxbelongs(n, m, x, matX, j, closee, taux)
   double precision :: sumd=0.0d0, taux
   integer i
   ! debugging
-  sumd = 0d0
   
   ! calculate the distance from x to the corresponding j vector
-  
-  do i = 1, n
-     sumd = sumd + (x(i) - matX(i, j))**2
-  enddo
-  
+  sumd = sum((x - matX(:,j))**2)
   sumd = sqrt(sumd)
   !write(*, *) 'sumd', sumd
   if(sumd < taux) then
      closee = .true.
   endif
-  
 end subroutine checkifxbelongs
 
 ! ----------------------- end of checkifxbelongs ---------------------------
