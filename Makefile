@@ -19,8 +19,10 @@ DRIVER13_90 = gen_maxq.f90
 DRIVER14_90 = nactfaces.f90
 DRIVER15_90 = Driveryurirosen_ns1_p.f90
 DRIVER16_90 = DriverRosenbrockp.f90
+DRIVER18_90 = DriverRosenbrockprintingp.f90
 
 LBFGSB  = lbfgsbnomessages.f90
+LBFGSBSTRONG = lbfgsbnomessagesStrong.f90
 LINPACK = linpack.f
 BLAS    = blas.f
 TIMER   = timer.f
@@ -28,7 +30,7 @@ LAPACKFLAG = -llapack
 BLASFLAG = -lblas
 
 #all :  lbfgsb_90_1 lbfgsb_90_2 lbfgsb_90_3 lbfgsb_90_4 lbfgsb_90_5 lbfgsb_90_6 lbfgsb_90_7 lbfgsb_90_8 lbfgsb_90_9 lbfgsb_90_10 lbfgsb_90_11 lbfgsb_90_12 lbfgsb_90_13 lbfgsb_90_14 lbfgsb_90_15 lbfgsb_90_16
-all : lbfgsb_90_16
+all : lbfgsb_90_16 lbfgsb_90_17 lbfgsb_90_18
 
 lbfgsb_90_1 : $(DRIVER1_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER)
 	$(FC) $(FFLAGS) $(DRIVER1_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER) $(LAPACKFLAG) $(BLASFLAG) -o rosenbrocknonsmooth
@@ -77,3 +79,9 @@ lbfgsb_90_15 : $(DRIVER15_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER)
 
 lbfgsb_90_16 : $(DRIVER16_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER)
 	$(FC) $(FFLAGS) $(DRIVER16_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER) $(LAPACKFLAG) $(BLASFLAG) -o rosenbrockp
+
+lbfgsb_90_17 : $(DRIVER16_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER)
+	$(FC) $(FFLAGS) $(DRIVER16_90) $(LBFGSBSTRONG) $(LINPACK) $(BLAS) $(TIMER) $(LAPACKFLAG) $(BLASFLAG) -o rosenbrockStrongp
+
+lbfgsb_90_18 : $(DRIVER18_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER)
+	$(FC) $(FFLAGS) $(DRIVER18_90) $(LBFGSB) $(LINPACK) $(BLAS) $(TIMER) $(LAPACKFLAG) $(BLASFLAG) -o rosenbrockprintingp

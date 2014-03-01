@@ -260,7 +260,7 @@ x(1) = x(1) - 1d0
            if (task(1:5) .eq. 'NEW_X') then
               ! THE ONLY STOPPING CONDITION THAT WE ARE GOING TO USE
               if (isave(30) .eq. 10000) &
-                   task= 'STOP: TOTAL NUMBER OF ITERATIONS REACHED 100000'
+                   task= 'STOP: TOTAL NUMBER OF ITERATIONS REACHED 10000'
               
               !        the minimization routine has returned with a new iterate.
               !        The time limit has not been reached, and we test whether
