@@ -1,0 +1,10 @@
+#!/bin/bash
+
+for p in 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
+do
+   echo 10 10000 $p
+   ~/Documents/thesis/lbfgsfortran/./rosenbrockp 10 10000 $p >> outputBreakoutputrosenbrockpvm10.txt
+done
+
+exit 0;
+
